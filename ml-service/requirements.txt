@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+python-multipart
+requests
+torch
+torchvision
+pillow
+numpy
+pandas
+scikit-learn
+google-generativeai
+transformers
+torch
+datasets
+scikit-learn
+torchvision
+

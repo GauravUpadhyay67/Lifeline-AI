@@ -1,0 +1,11 @@
+{
+  "bloodType": "A+",
+  "unitsRequired": 2,
+  "urgency": "High",
+  "location": {
+    "lat": 28.655616,
+    "lng": 77.1883008,
+    "address": "Test Hospital"
+  },
+  "notes": "Test Request from Curl"
+}
