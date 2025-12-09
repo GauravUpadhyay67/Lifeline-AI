@@ -708,3 +708,51 @@ Emitting to donor 6925f4cfa41f34df277ceb09
 Emitting to donor 6925b936975c8d734dc0e87e
 Emitting to donor 69266cbaf0d4093385458aee
 Emitting to donor 6925fc7f342c25f3207cbb59
+Received update_location: {"userId":"6938558c19753bea538c8826","lat":28.476163977728667,"lng":77.51139704913294}
+User updated: {
+  type: 'Point',
+  coordinates: [ 77.51139704913294, 28.476163977728667 ]
+}
+Received update_location: {"userId":"6938558c19753bea538c8826","lat":28.476163977728667,"lng":77.51139704913294}
+User updated: {
+  type: 'Point',
+  coordinates: [ 77.51139704913294, 28.476163977728667 ]
+}
+Emitting to donor 6938558c19753bea538c8826
+Received update_location: {"userId":"6938558c19753bea538c8826","lat":28.47614169225469,"lng":77.51149186697094}
+User updated: {
+  type: 'Point',
+  coordinates: [ 77.51149186697094, 28.47614169225469 ]
+}
+Emitting to donor 6938558c19753bea538c8826
+Received update_location: {"userId":"6938558c19753bea538c8826","lat":28.47614169225469,"lng":77.51149186697094}
+User updated: {
+  type: 'Point',
+  coordinates: [ 77.51149186697094, 28.47614169225469 ]
+}
+Received update_location: {"userId":"6938558c19753bea538c8826","lat":28.47614169225469,"lng":77.51149186697094}
+User updated: {
+  type: 'Point',
+  coordinates: [ 77.51149186697094, 28.47614169225469 ]
+}
+Emitting to donor 6938558c19753bea538c8826
+Received update_location: {"userId":"6938558c19753bea538c8826","lat":28.47612555564921,"lng":77.51153096156398}
+User updated: {
+  type: 'Point',
+  coordinates: [ 77.51153096156398, 28.47612555564921 ]
+}
+Received update_location: {"userId":"6938558c19753bea538c8826","lat":28.47612555564921,"lng":77.51153096156398}
+User updated: {
+  type: 'Point',
+  coordinates: [ 77.51153096156398, 28.47612555564921 ]
+}
+Received update_location: {"userId":"6938558c19753bea538c8826","lat":28.47612555564921,"lng":77.51153096156398}
+User updated: {
+  type: 'Point',
+  coordinates: [ 77.51153096156398, 28.47612555564921 ]
+}
+Received update_location: {"userId":"6938558c19753bea538c8826","lat":28.47612555564921,"lng":77.51153096156398}
+User updated: {
+  type: 'Point',
+  coordinates: [ 77.51153096156398, 28.47612555564921 ]
+}

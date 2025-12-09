@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { register, reset } from '../redux/slices/authSlice';
 
 import bgImage from '../assets/medical_background.png';
@@ -71,13 +71,16 @@ const Register = () => {
         role,
         phone,
         address,
-        bloodType,
-        age,
-        gender,
+        bloodType: bloodType || undefined, // Send undefined if empty to skip validation
+        age: age || undefined,
+        gender: gender || undefined,
         specialization,
         licenseNumber,
         hospitalName
       };
+      
+      // Clean up object to remove undefined keys if needed, 
+      // though JSON.stringify (used in axios usually) drops undefined keys automatically.
       dispatch(register(userData));
     }
   };

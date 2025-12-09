@@ -23,7 +23,7 @@ const analyzeAndSaveReport = async (req, res) => {
 
     // 2. Call ML Service
     // Assuming ML service is running on port 8000
-    const mlResponse = await axios.post('http://localhost:8000/predict/disease', formData, {
+    const mlResponse = await axios.post('http://127.0.0.1:8000/predict/disease', formData, {
       headers: {
         ...formData.getHeaders(),
       },
