@@ -11,7 +11,8 @@ const getInventory = async (req, res) => {
       // Create default inventory if not exists
       inventory = await BloodInventory.create({
         hospital: req.user._id,
-        stock: { 'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0, 'O+': 0, 'O-': 0, 'AB+': 0, 'AB-': 0 }
+        stock: { 'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0, 'O+': 0, 'O-': 0, 'AB+': 0, 'AB-': 0 },
+        beds: { icu: { total: 20, occupied: 0 }, general: { total: 100, occupied: 0 } }
       });
     }
 
@@ -27,19 +28,21 @@ const getInventory = async (req, res) => {
 // @access  Private (Hospital only)
 const updateInventory = async (req, res) => {
   try {
-    const { stock } = req.body;
+    const { stock, beds } = req.body;
 
     let inventory = await BloodInventory.findOne({ hospital: req.user._id });
 
     if (inventory) {
-      inventory.stock = stock;
+      if (stock) inventory.stock = stock;
+      if (beds) inventory.beds = beds;
       inventory.lastUpdated = Date.now();
       await inventory.save();
       res.json(inventory);
     } else {
       inventory = await BloodInventory.create({
         hospital: req.user._id,
-        stock,
+        stock: stock || { 'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0, 'O+': 0, 'O-': 0, 'AB+': 0, 'AB-': 0 },
+        beds: beds || { icu: { total: 20, occupied: 0 }, general: { total: 100, occupied: 0 } }
       });
       res.status(201).json(inventory);
     }

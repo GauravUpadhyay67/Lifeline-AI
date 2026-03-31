@@ -16,6 +16,16 @@ const bloodInventorySchema = mongoose.Schema({
     'AB+': { type: Number, default: 0 },
     'AB-': { type: Number, default: 0 },
   },
+  beds: {
+    icu: {
+      total: { type: Number, default: 20 },
+      occupied: { type: Number, default: 0 }
+    },
+    general: {
+      total: { type: Number, default: 100 },
+      occupied: { type: Number, default: 0 }
+    }
+  },
   lastUpdated: {
     type: Date,
     default: Date.now,

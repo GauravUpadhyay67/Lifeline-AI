@@ -6,7 +6,8 @@ const axios = require('axios');
 const getForecast = async (req, res) => {
   try {
     // Call ML Service
-    const mlResponse = await axios.get('http://localhost:8000/predict/blood-demand');
+    const mlUrl = process.env.ML_SERVICE_URL || 'http://localhost:8000';
+    const mlResponse = await axios.get(`${mlUrl}/predict/blood-demand`);
     res.json(mlResponse.data);
   } catch (error) {
     console.error('Error fetching forecast:', error.message);

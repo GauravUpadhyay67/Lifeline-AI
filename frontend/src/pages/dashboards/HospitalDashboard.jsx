@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../../config';
 import ReactMarkdown from 'react-markdown';
+import { useTheme } from '../../context/ThemeContext';
+import { Activity, AlertCircle, Droplet, Users, BrainCircuit, Edit2, CheckCircle2, MapPin, Search, ChevronRight, Bed, UserCheck } from 'lucide-react';
 
 const HospitalDashboard = ({ user }) => {
+  const { darkMode } = useTheme();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestData, setRequestData] = useState({
     bloodType: 'A+',
@@ -13,8 +17,14 @@ const HospitalDashboard = ({ user }) => {
   });
 
   const [inventory, setInventory] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingStock, setIsEditingStock] = useState(false);
   const [editStock, setEditStock] = useState({});
+
+  const [isEditingBeds, setIsEditingBeds] = useState(false);
+  const [editBeds, setEditBeds] = useState({
+    icu: { total: 0, occupied: 0 },
+    general: { total: 0, occupied: 0 }
+  });
 
   const [showForecastModal, setShowForecastModal] = useState(false);
   const [forecast, setForecast] = useState('');
@@ -22,20 +32,72 @@ const HospitalDashboard = ({ user }) => {
 
   const [myRequests, setMyRequests] = useState([]);
 
+  const [affiliatedDoctors, setAffiliatedDoctors] = useState([]);
+  const [verifyingDoctor, setVerifyingDoctor] = useState(null);
+  
+  const [activeStaffTab, setActiveStaffTab] = useState('active'); // 'active' | 'pending'
+
   useEffect(() => {
     fetchInventory();
     fetchMyRequests();
-  }, []);
+    fetchAffiliatedDoctors();
+  }, [user.token]);
+
+  const fetchAffiliatedDoctors = async () => {
+    try {
+      const response = await axios.get('${API_URL}/api/users/affiliated-doctors', {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      setAffiliatedDoctors(response.data);
+    } catch (error) {
+      console.error('Error fetching affiliated doctors:', error);
+    }
+  };
+
+  const handleVerifyDoctor = async (id, name) => {
+    if (!window.confirm(`Approve Dr. ${name}?`)) return;
+    setVerifyingDoctor(id);
+    try {
+      await axios.put(`${API_URL}/api/users/${id}/hospital-verify`, {}, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      // Instead of completely removing, we can refetch or manually update local state
+      setAffiliatedDoctors(prev => prev.map(d => d._id === id ? { ...d, isVerified: true } : d));
+      alert(`Dr. ${name} verified successfully.`);
+      setActiveStaffTab('active');
+    } catch (error) {
+      console.error('Error verifying doctor:', error);
+      alert('Failed to verify doctor.');
+    } finally {
+      setVerifyingDoctor(null);
+    }
+  };
+
+  const handleRejectDoctor = async (id, name) => {
+    if (!window.confirm(`Remove Dr. ${name} from your staff?`)) return;
+    setVerifyingDoctor(id);
+    try {
+      await axios.delete(`${API_URL}/api/users/${id}/hospital-reject`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      setAffiliatedDoctors(prev => prev.filter(d => d._id !== id));
+      alert(`Dr. ${name} removed.`);
+    } catch (error) {
+      console.error('Error rejecting doctor:', error);
+      alert('Failed to remove doctor.');
+    } finally {
+      setVerifyingDoctor(null);
+    }
+  };
 
   const fetchInventory = async () => {
     try {
       const token = user.token;
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
-      const response = await axios.get('http://localhost:5000/api/inventory', config);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const response = await axios.get('${API_URL}/api/inventory', config);
       setInventory(response.data);
       setEditStock(response.data.stock);
+      setEditBeds(response.data.beds || { icu: { total: 20, occupied: 0 }, general: { total: 100, occupied: 0 } });
     } catch (error) {
       console.error('Error fetching inventory:', error);
     }
@@ -44,22 +106,64 @@ const HospitalDashboard = ({ user }) => {
   const handleUpdateStock = async () => {
     try {
       const token = user.token;
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
-      const response = await axios.put('http://localhost:5000/api/inventory', { stock: editStock }, config);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      
+      const sanitizedStock = {};
+      Object.keys(editStock).forEach(key => {
+        sanitizedStock[key] = parseInt(editStock[key], 10) || 0;
+      });
+
+      const response = await axios.put('${API_URL}/api/inventory', { stock: sanitizedStock }, config);
       setInventory(response.data);
-      setIsEditing(false);
+      setIsEditingStock(false);
     } catch (error) {
-      console.error('Error updating inventory:', error);
+      console.error('Error updating inventory stock:', error);
       alert('Failed to update stock');
     }
   };
 
+  const handleUpdateBeds = async () => {
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      
+      const sanitizedBeds = {
+        icu: {
+          total: parseInt(editBeds.icu.total, 10) || 0,
+          occupied: parseInt(editBeds.icu.occupied, 10) || 0
+        },
+        general: {
+          total: parseInt(editBeds.general.total, 10) || 0,
+          occupied: parseInt(editBeds.general.occupied, 10) || 0
+        }
+      };
+
+      const response = await axios.put('${API_URL}/api/inventory', { beds: sanitizedBeds }, config);
+      setInventory(response.data);
+      setEditBeds(response.data.beds);
+      setIsEditingBeds(false);
+    } catch (error) {
+      console.error('Error updating bed capacity:', error);
+      alert('Failed to update beds');
+    }
+  };
+
   const handleStockChange = (type, value) => {
+    const val = value === '' ? '' : parseInt(value, 10);
     setEditStock(prev => ({
       ...prev,
-      [type]: parseInt(value) || 0
+      [type]: val
+    }));
+  };
+
+  const handleBedChange = (type, field, value) => {
+    const val = value === '' ? '' : parseInt(value, 10);
+    setEditBeds(prev => ({
+      ...prev,
+      [type]: {
+        ...prev[type],
+        [field]: val
+      }
     }));
   };
 
@@ -75,7 +179,6 @@ const HospitalDashboard = ({ user }) => {
               lng: position.coords.longitude
             }
           }));
-          // Optional: You could call a reverse geocoding API here to get the address
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -91,9 +194,7 @@ const HospitalDashboard = ({ user }) => {
     e.preventDefault();
     try {
       const token = user.token;
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
+      const config = { headers: { Authorization: `Bearer ${token}` } };
       
       const payload = {
         bloodType: requestData.bloodType,
@@ -103,7 +204,7 @@ const HospitalDashboard = ({ user }) => {
         notes: requestData.notes
       };
 
-      await axios.post('http://localhost:5000/api/requests', payload, config);
+      await axios.post('${API_URL}/api/requests', payload, config);
       alert('Emergency request broadcasted successfully!');
       setShowRequestModal(false);
       setRequestData({ 
@@ -113,7 +214,7 @@ const HospitalDashboard = ({ user }) => {
         location: { lat: 28.6139, lng: 77.2090, address: 'AIIMS, New Delhi' },
         notes: ''
       });
-      fetchMyRequests(); // Refresh list
+      fetchMyRequests();
     } catch (error) {
       console.error('Error creating request:', error);
       alert('Failed to create request');
@@ -123,10 +224,8 @@ const HospitalDashboard = ({ user }) => {
   const fetchMyRequests = async () => {
     try {
       const token = user.token;
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
-      const response = await axios.get('http://localhost:5000/api/requests/my-requests', config);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const response = await axios.get('${API_URL}/api/requests/my-requests', config);
       setMyRequests(response.data.filter(req => req.status === 'open'));
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -134,15 +233,12 @@ const HospitalDashboard = ({ user }) => {
   };
 
   const handleFulfillRequest = async (id) => {
-    if (!window.confirm('Are you sure you want to mark this request as fulfilled? This will remove alerts from donors.')) return;
+    if (!window.confirm('Mark this request as fulfilled?')) return;
     try {
       const token = user.token;
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
-      await axios.put(`http://localhost:5000/api/requests/${id}/fulfill`, {}, config);
-      fetchMyRequests(); // Refresh list
-      alert('Request fulfilled and notifications removed.');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.put(`${API_URL}/api/requests/${id}/fulfill`, {}, config);
+      fetchMyRequests(); 
     } catch (error) {
       console.error('Error fulfilling request:', error);
       alert('Failed to fulfill request');
@@ -154,10 +250,8 @@ const HospitalDashboard = ({ user }) => {
     setLoadingForecast(true);
     try {
       const token = user.token;
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
-      const response = await axios.get('http://localhost:5000/api/forecast', config);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const response = await axios.get('${API_URL}/api/forecast', config);
       setForecast(response.data.forecast);
     } catch (error) {
       console.error('Error fetching forecast:', error);
@@ -167,427 +261,381 @@ const HospitalDashboard = ({ user }) => {
     }
   };
 
-  const styles = {
-    grid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-      gap: '2rem',
-      marginTop: '1rem',
-    },
-    card: {
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      backdropFilter: 'blur(10px)',
-      padding: '2rem',
-      borderRadius: '16px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-      border: '1px solid rgba(255, 255, 255, 0.5)',
-      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-      cursor: 'pointer',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-    },
-    cardHeader: {
-      display: 'flex',
-      alignItems: 'center',
-      marginBottom: '1rem',
-      gap: '1rem',
-    },
-    icon: {
-      fontSize: '2rem',
-      padding: '1rem',
-      borderRadius: '12px',
-      background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
-      color: '#0284c7',
-    },
-    cardTitle: {
-      fontSize: '1.5rem',
-      fontWeight: '700',
-      color: '#1f2937',
-      margin: 0,
-    },
-    cardText: {
-      color: '#6b7280',
-      marginBottom: '2rem',
-      lineHeight: '1.6',
-      flex: 1,
-    },
-    button: {
-      width: '100%',
-      padding: '1rem',
-      backgroundColor: '#0ea5e9',
-      color: 'white',
-      border: 'none',
-      borderRadius: '12px',
-      cursor: 'pointer',
-      fontSize: '1rem',
-      fontWeight: '600',
-      transition: 'background-color 0.2s ease',
-      marginTop: 'auto',
-      boxShadow: '0 4px 14px 0 rgba(14, 165, 233, 0.39)',
-    },
-    stockGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '10px',
-        marginTop: '1.5rem',
-        marginBottom: '1.5rem'
-    },
-    stockItem: {
-        background: 'rgba(255, 255, 255, 0.6)',
-        padding: '10px',
-        borderRadius: '8px',
-        textAlign: 'center',
-        fontWeight: 'bold',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        border: '1px solid #e5e7eb',
-    },
-    input: {
-      width: '60px',
-      padding: '4px',
-      marginTop: '4px',
-      textAlign: 'center',
-      border: '1px solid #d1d5db',
-      borderRadius: '4px'
-    },
-    modalOverlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000,
-      backdropFilter: 'blur(5px)',
-    },
-    modalContent: {
-      backgroundColor: 'white',
-      padding: '2.5rem',
-      borderRadius: '16px',
-      width: '90%',
-      maxWidth: '600px',
-      maxHeight: '80vh',
-      overflowY: 'auto',
-      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    },
-    formGroup: {
-      marginBottom: '1.5rem',
-    },
-    label: {
-      display: 'block',
-      marginBottom: '0.5rem',
-      fontWeight: '600',
-      color: '#374151',
-    },
-    select: {
-      width: '100%',
-      padding: '0.75rem',
-      borderRadius: '8px',
-      border: '1px solid #d1d5db',
-      backgroundColor: '#f9fafb',
-    },
-    numberInput: {
-      width: '100%',
-      padding: '0.75rem',
-      borderRadius: '8px',
-      border: '1px solid #d1d5db',
-      backgroundColor: '#f9fafb',
-    }
+  const c = {
+    bg: darkMode ? '#0e1117' : '#f8fafc',
+    cardBg: darkMode ? '#161b22' : '#ffffff',
+    cardBorder: darkMode ? '1px solid #30363d' : '1px solid #e2e8f0',
+    text: darkMode ? '#c9d1d9' : '#24292e',
+    textHighlight: darkMode ? '#ffffff' : '#0f172a',
+    muted: darkMode ? '#8b949e' : '#64748b',
+    border: darkMode ? '#30363d' : '#e2e8f0',
+    primary: darkMode ? '#58a6ff' : '#0ea5e9',
+    primaryBg: darkMode ? 'rgba(88, 166, 255, 0.1)' : 'rgba(14, 165, 233, 0.1)',
+    danger: darkMode ? '#f85149' : '#e11d48',
+    dangerBg: darkMode ? 'rgba(248, 81, 73, 0.1)' : 'rgba(225, 29, 72, 0.08)',
+    success: darkMode ? '#3fb950' : '#10b981',
+    successBg: darkMode ? 'rgba(63, 185, 80, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+    caution: darkMode ? '#d29922' : '#d97706',
+    cautionBg: darkMode ? 'rgba(210, 153, 34, 0.1)' : 'rgba(217, 119, 6, 0.1)',
+    inputBg: darkMode ? '#0d1117' : '#f8fafc',
+    backdrop: darkMode ? 'rgba(0,0,0,0.6)' : 'rgba(15,23,42,0.4)',
   };
-  
-  const requestItemStyle = {
-    padding: '1rem',
-    border: '1px solid #e5e7eb',
-    borderRadius: '12px',
-    marginBottom: '0.75rem',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
+
+  const pendingDoctors = affiliatedDoctors.filter(d => !d.isVerified);
+  const activeDoctors = affiliatedDoctors.filter(d => d.isVerified);
+
+  const renderBedProgress = (type, data) => {
+    const total = data.total || 1;
+    const occupied = data.occupied || 0;
+    const percentage = Math.min(100, Math.round((occupied / total) * 100));
+    
+    let statusColor = c.success;
+    if (percentage > 80) statusColor = c.danger;
+    else if (percentage > 60) statusColor = c.caution;
+
+    return (
+      <div style={{ marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+          <span style={{ fontWeight: '600', color: c.textHighlight, fontSize: '0.9rem', textTransform: 'capitalize' }}>{type === 'icu' ? 'ICU Beds' : 'General Ward'}</span>
+          <span style={{ color: c.muted, fontSize: '0.85rem' }}><strong style={{ color: c.textHighlight }}>{occupied}</strong> / {total} Occupied</span>
+        </div>
+        <div style={{ height: '8px', background: c.inputBg, borderRadius: '4px', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${percentage}%`, background: statusColor, borderRadius: '4px', transition: 'width 0.5s ease-out' }}></div>
+        </div>
+      </div>
+    );
   };
+
+  const renderBedEditFields = (type, data) => (
+    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem', padding: '1rem', background: c.inputBg, borderRadius: '6px', border: c.cardBorder }}>
+      <div style={{ width: '80px', fontWeight: '600', color: c.textHighlight, fontSize: '0.9rem' }}>
+        {type === 'icu' ? 'ICU' : 'General'}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+        <label style={{ fontSize: '0.8rem', color: c.muted }}>Occupied:</label>
+        <input 
+          type="number" 
+          className="no-spinner" 
+          style={{ width: '60px', padding: '0.4rem', borderRadius: '4px', background: 'transparent', border: `1px solid ${c.border}`, color: c.textHighlight, outline: 'none' }} 
+          value={data.occupied} 
+          onChange={(e) => handleBedChange(type, 'occupied', e.target.value)} 
+        />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+        <label style={{ fontSize: '0.8rem', color: c.muted }}>Total:</label>
+        <input 
+          type="number" 
+          className="no-spinner" 
+          style={{ width: '60px', padding: '0.4rem', borderRadius: '4px', background: 'transparent', border: `1px solid ${c.border}`, color: c.textHighlight, outline: 'none' }} 
+          value={data.total} 
+          onChange={(e) => handleBedChange(type, 'total', e.target.value)} 
+        />
+      </div>
+    </div>
+  );
 
   return (
-    <div>
-      <h2 style={{fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '2rem'}}>Hospital Dashboard</h2>
-      <div style={styles.grid}>
-        {/* Inventory Card */}
-        <div 
-          style={styles.card}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-5px)';
-            e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.05)';
-          }}
-        >
-          <div style={styles.cardHeader}>
-            <div style={{...styles.icon, background: 'linear-gradient(135deg, #dcfce7 0%, #86efac 100%)', color: '#15803d'}}>🏥</div>
-            <h3 style={styles.cardTitle}>Blood Inventory</h3>
-          </div>
-          <p style={styles.cardText}>Manage current blood stock levels and update availability.</p>
-          
-          {inventory ? (
-            <div style={styles.stockGrid}>
-              {Object.entries(isEditing ? editStock : inventory.stock).map(([type, count]) => (
-                <div key={type} style={styles.stockItem}>
-                  <span style={{color: '#ef4444'}}>{type}</span>
-                  {isEditing ? (
-                    <input 
-                      type="number" 
-                      value={count} 
-                      onChange={(e) => handleStockChange(type, e.target.value)}
-                      style={styles.input}
-                    />
-                  ) : (
-                    <span style={{color: '#1f2937'}}>{count}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p>Loading inventory...</p>
-          )}
-
-          <div style={{marginTop: 'auto', display: 'flex', gap: '0.5rem'}}>
-            {isEditing ? (
-              <>
-                <button style={{...styles.button, backgroundColor: '#10b981', boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)'}} onClick={handleUpdateStock}>Save Changes</button>
-                <button 
-                  style={{...styles.button, backgroundColor: '#6b7280', boxShadow: '0 4px 14px 0 rgba(107, 114, 128, 0.39)'}} 
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditStock(inventory.stock);
-                  }}
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <button style={{...styles.button, backgroundColor: '#10b981', boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)'}} onClick={() => setIsEditing(true)}>Update Stock</button>
-            )}
-          </div>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', minHeight: '100vh', padding: '2rem', fontFamily: "'Inter', sans-serif" }}>
+      <style>{`
+        .no-spinner::-webkit-inner-spin-button,
+        .no-spinner::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        .no-spinner {
+          -moz-appearance: textfield;
+        }
+      `}</style>
+      
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1.5rem', borderBottom: c.cardBorder, paddingBottom: '1.5rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: c.textHighlight, margin: 0, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+             <Activity size={24} color={c.primary} />
+             Hospital Operations
+          </h1>
+          <p style={{ color: c.muted, marginTop: '0.5rem', fontSize: '0.95rem' }}>Overview of active inventory, personnel, and emergency dispatch.</p>
         </div>
-        
-        {/* Emergency Request Card */}
-        <div 
-          style={styles.card}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-5px)';
-            e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.05)';
-          }}
-        >
-          <div style={styles.cardHeader}>
-            <div style={{...styles.icon, background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', color: '#dc2626'}}>🚨</div>
-            <h3 style={styles.cardTitle}>Emergency Request</h3>
-          </div>
-          <p style={styles.cardText}>Broadcast an emergency blood request to nearby donors immediately.</p>
-          <button 
-            style={{...styles.button, backgroundColor: '#ef4444', marginBottom: '1.5rem', boxShadow: '0 4px 14px 0 rgba(239, 68, 68, 0.39)'}}
-            onClick={() => setShowRequestModal(true)}
-          >
-            Create Request
-          </button>
-
-          <h4 style={{marginTop: '1rem', marginBottom: '1rem', color: '#374151', fontSize: '1.1rem'}}>Active Requests</h4>
-          {myRequests.length > 0 ? (
-            <div style={{maxHeight: '200px', overflowY: 'auto', width: '100%'}}>
-              {myRequests.map(req => (
-                <div key={req._id} style={requestItemStyle}>
-                  <div>
-                    <div style={{fontWeight: 'bold', color: '#ef4444'}}>{req.bloodType} ({req.unitsRequired} units)</div>
-                    <div style={{fontSize: '0.8rem', color: '#6b7280'}}>{req.urgency} Urgency</div>
-                  </div>
-                  <button 
-                    style={{...styles.button, backgroundColor: '#10b981', padding: '0.5rem 1rem', fontSize: '0.8rem', width: 'auto', marginTop: 0}}
-                    onClick={() => handleFulfillRequest(req._id)}
-                  >
-                    Fulfill
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p style={{fontSize: '0.9rem', color: '#9ca3af', fontStyle: 'italic'}}>No active requests.</p>
-          )}
-        </div>
-
-        {/* Demand Forecast Card */}
-        <div 
-          style={styles.card}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-5px)';
-            e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.05)';
-          }}
-        >
-          <div style={styles.cardHeader}>
-            <div style={{...styles.icon, background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', color: '#4338ca'}}>📈</div>
-            <h3 style={styles.cardTitle}>Demand Forecast</h3>
-          </div>
-          <p style={styles.cardText}>View AI-predicted blood demand for the upcoming week to optimize inventory.</p>
-          <button style={{...styles.button, backgroundColor: '#6366f1', boxShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.39)'}} onClick={handleViewForecast}>View Forecast</button>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+           <button onClick={handleViewForecast} style={{ padding: '0.65rem 1.25rem', background: c.primary, color: '#ffffff', border: 'none', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', transition: 'all 0.2s', boxShadow: darkMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)' }} onMouseEnter={e => e.currentTarget.style.opacity=0.9} onMouseLeave={e => e.currentTarget.style.opacity=1}>
+             <BrainCircuit size={16}/> Forecast
+           </button>
+           <button onClick={() => setShowRequestModal(true)} style={{ padding: '0.65rem 1.25rem', background: c.danger, color: '#ffffff', border: 'none', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', transition: 'all 0.2s', boxShadow: darkMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)' }} onMouseEnter={e => e.currentTarget.style.opacity=0.9} onMouseLeave={e => e.currentTarget.style.opacity=1}>
+             <AlertCircle size={16}/> Broadcast Emergency
+           </button>
         </div>
       </div>
 
-      {/* Request Modal */}
-      {showRequestModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalContent}>
-            <h3 style={{...styles.cardTitle, marginBottom: '1.5rem'}}>Create Emergency Request</h3>
-            <form onSubmit={handleCreateRequest}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Blood Type</label>
-                <select 
-                  style={styles.select}
-                  value={requestData.bloodType}
-                  onChange={(e) => setRequestData({...requestData, bloodType: e.target.value})}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem' }}>
+          
+         {/* LEFT COLUMN: Takes up minimum 500px or stretches */}
+         <div style={{ flex: '2 1 500px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            
+            {/* Inventory Section */}
+            <div style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '8px', padding: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: c.cardBorder, paddingBottom: '1rem' }}>
+                <h3 style={{ margin: 0, color: c.textHighlight, fontSize: '1.1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Droplet size={18} color={c.danger} /> Blood Inventory
+                </h3>
+                <button 
+                  onClick={() => {
+                    if (isEditingStock) handleUpdateStock();
+                    else setIsEditingStock(true);
+                  }} 
+                  style={{ padding: '0.4rem 0.8rem', background: isEditingStock ? c.primary : 'transparent', color: isEditingStock ? '#fff' : c.primary, border: isEditingStock ? 'none' : `1px solid ${c.cardBorder}`, borderRadius: '6px', cursor: 'pointer', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
                 >
-                  {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(type => (
-                    <option key={type} value={type}>{type}</option>
+                  {isEditingStock ? <CheckCircle2 size={14}/> : <Edit2 size={14}/>} 
+                  {isEditingStock ? 'Save' : 'Manage Stock'}
+                </button>
+              </div>
+
+              {inventory ? (
+                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem' }}>
+                   {Object.entries(isEditingStock ? editStock : inventory.stock).map(([type, count]) => (
+                     <div key={type} style={{ background: c.inputBg, border: c.cardBorder, padding: '1rem', borderRadius: '6px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', transition: 'border-color 0.2s', borderBottom: isEditingStock ? `2px solid ${c.primary}` : c.cardBorder }}>
+                       <span style={{ fontSize: '0.85rem', fontWeight: '600', color: c.muted, marginBottom: '0.5rem' }}>Group {type}</span>
+                       {isEditingStock ? (
+                         <input 
+                           type="number" 
+                           className="no-spinner" 
+                           style={{ width: '100%', padding: '0', border: 'none', background: 'transparent', color: c.textHighlight, fontWeight: '700', fontSize: '1.5rem', outline: 'none' }} 
+                           value={editStock[type]} 
+                           onChange={(e) => handleStockChange(type, e.target.value)} 
+                           placeholder="0"
+                         />
+                       ) : (
+                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                            <span style={{ fontSize: '1.75rem', fontWeight: '700', color: c.textHighlight }}>{count}</span>
+                            <span style={{fontSize: '0.85rem', color: c.muted, fontWeight: '500'}}>units</span>
+                         </div>
+                       )}
+                     </div>
+                   ))}
+                 </div>
+              ) : <p style={{ color: c.muted, fontSize: '0.9rem' }}>Loading inventory state...</p>}
+            </div>
+
+            {/* Affiliated Doctors Section */}
+            <div style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '8px', padding: '0' }}>
+              <div style={{ borderBottom: c.cardBorder, display: 'flex', alignItems: 'center' }}>
+                 <button 
+                  onClick={() => setActiveStaffTab('active')} 
+                  style={{ flex: 1, padding: '1.25rem', background: activeStaffTab === 'active' ? 'transparent' : c.inputBg, color: activeStaffTab === 'active' ? c.textHighlight : c.muted, border: 'none', borderBottom: activeStaffTab === 'active' ? `2px solid ${c.primary}` : '2px solid transparent', cursor: 'pointer', fontWeight: '600', fontSize: '0.95rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s' }}
+                 >
+                   <UserCheck size={16} /> Active Staff ({activeDoctors.length})
+                 </button>
+                 <button 
+                  onClick={() => setActiveStaffTab('pending')} 
+                  style={{ flex: 1, padding: '1.25rem', background: activeStaffTab === 'pending' ? 'transparent' : c.inputBg, color: activeStaffTab === 'pending' ? c.textHighlight : c.muted, border: 'none', borderBottom: activeStaffTab === 'pending' ? `2px solid ${c.caution}` : '2px solid transparent', cursor: 'pointer', fontWeight: '600', fontSize: '0.95rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s' }}
+                 >
+                   <Users size={16} /> Pending Appeals ({pendingDoctors.length})
+                 </button>
+              </div>
+              
+              <div style={{ padding: '1.5rem' }}>
+                {activeStaffTab === 'active' ? (
+                  activeDoctors.length === 0 ? (
+                    <div style={{ padding: '2rem', textAlign: 'center', color: c.muted, background: c.inputBg, borderRadius: '6px', border: c.cardBorder, fontSize: '0.9rem' }}>No active staff members found.</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {activeDoctors.map(doc => (
+                        <div key={doc._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', border: c.cardBorder, borderRadius: '6px', background: c.inputBg }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.success }}></div>
+                              <span style={{ color: c.textHighlight, fontWeight: '600', fontSize: '0.95rem' }}>Dr. {doc.name}</span>
+                            </div>
+                            <div style={{ color: c.muted, fontSize: '0.85rem', marginTop: '0.2rem', paddingLeft: '1rem' }}>{doc.specialization || 'General Practitioner'} &bull; LIC: {doc.licenseNumber || 'N/A'}</div>
+                          </div>
+                          <button onClick={() => handleRejectDoctor(doc._id, doc.name)} style={{ padding: '0.4rem 0.75rem', background: 'transparent', color: c.danger, border: c.cardBorder, borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '500' }}>Remove</button>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  pendingDoctors.length === 0 ? (
+                    <div style={{ padding: '2rem', textAlign: 'center', color: c.muted, background: c.inputBg, borderRadius: '6px', border: c.cardBorder, fontSize: '0.9rem' }}>All affiliations are up to date.</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {pendingDoctors.map(doc => (
+                        <div key={doc._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', border: c.cardBorder, borderRadius: '6px', background: c.inputBg }}>
+                          <div>
+                            <div style={{ color: c.textHighlight, fontWeight: '600', fontSize: '0.95rem' }}>{doc.name}</div>
+                            <div style={{ color: c.muted, fontSize: '0.85rem', marginTop: '0.2rem' }}>{doc.specialization} &bull; LIC: {doc.licenseNumber}</div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button disabled={verifyingDoctor === doc._id} onClick={() => handleVerifyDoctor(doc._id, doc.name)} style={{ padding: '0.4rem 0.75rem', background: c.successBg, color: c.success, border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600' }}>Approve</button>
+                            <button disabled={verifyingDoctor === doc._id} onClick={() => handleRejectDoctor(doc._id, doc.name)} style={{ padding: '0.4rem 0.75rem', background: 'transparent', color: c.danger, border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '500' }}>Decline</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+
+         </div>
+
+         {/* RIGHT COLUMN: Takes up minimum 300px or stretches */}
+         <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            
+            {/* Active Bed Management */}
+            <div style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '8px', padding: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: c.cardBorder, paddingBottom: '1rem' }}>
+                <h3 style={{ margin: 0, color: c.textHighlight, fontSize: '1.1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Bed size={18} color={c.primary} /> Bed Capacity
+                </h3>
+                <button 
+                  onClick={() => {
+                    if (isEditingBeds) handleUpdateBeds();
+                    else setIsEditingBeds(true);
+                  }} 
+                  style={{ padding: '0.4rem 0.8rem', background: isEditingBeds ? c.primary : 'transparent', color: isEditingBeds ? '#fff' : c.primary, border: isEditingBeds ? 'none' : `1px solid ${c.cardBorder}`, borderRadius: '6px', cursor: 'pointer', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
+                >
+                  {isEditingBeds ? <CheckCircle2 size={14}/> : <Edit2 size={14}/>} 
+                  {isEditingBeds ? 'Save' : 'Update Beds'}
+                </button>
+              </div>
+
+              {inventory && inventory.beds ? (
+                isEditingBeds ? (
+                  <div>
+                    {renderBedEditFields('icu', editBeds.icu)}
+                    {renderBedEditFields('general', editBeds.general)}
+                  </div>
+                ) : (
+                  <div>
+                    {renderBedProgress('icu', inventory.beds.icu)}
+                    {renderBedProgress('general', inventory.beds.general)}
+                  </div>
+                )
+              ) : <p style={{ color: c.muted, fontSize: '0.9rem' }}>Loading bed capacity...</p>}
+            </div>
+
+
+            {/* Active Requests */}
+            <div style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '8px', padding: '1.5rem' }}>
+              <div style={{ borderBottom: c.cardBorder, paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+                 <h3 style={{ margin: 0, color: c.textHighlight, fontSize: '1.1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Activity size={18} color={c.danger} /> Active Emergencies</h3>
+              </div>
+              
+              {myRequests.length === 0 ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: c.muted, border: c.cardBorder, borderStyle: 'dashed', borderRadius: '6px', fontSize: '0.9rem' }}>No active dispatches.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '600px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+                  {myRequests.map(req => (
+                    <div key={req._id} style={{ padding: '1rem', background: c.inputBg, border: c.cardBorder, borderRadius: '6px', borderLeft: `4px solid ${c.danger}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                        <div>
+                          <div style={{ fontWeight: '600', color: c.textHighlight, fontSize: '1rem' }}>Type {req.bloodType}</div>
+                          <div style={{ color: c.muted, fontSize: '0.8rem', marginTop: '0.1rem' }}>{req.unitsRequired} Units Required</div>
+                        </div>
+                        <span style={{ padding: '0.2rem 0.5rem', background: c.dangerBg, color: c.danger, borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase' }}>
+                          {req.urgency}
+                        </span>
+                      </div>
+                      <button onClick={() => handleFulfillRequest(req._id)} style={{ width: '100%', padding: '0.5rem', background: 'transparent', color: c.textHighlight, border: `1px solid ${c.cardBorder}`, borderRadius: '4px', fontSize: '0.8rem', fontWeight: '500', cursor: 'pointer' }}>Close Request</button>
+                    </div>
                   ))}
-                </select>
+                </div>
+              )}
+            </div>
+
+         </div>
+      </div>
+
+      {/* Modals */}
+      {showRequestModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: c.backdrop, backdropFilter: 'blur(2px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '10vh', zIndex: 1000, padding: '3rem 1rem' }}>
+          <div style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '8px', padding: '0', width: '100%', maxWidth: '480px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)' }}>
+            
+            <div style={{ padding: '1.5rem', borderBottom: c.cardBorder, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+               <h3 style={{ color: c.textHighlight, fontSize: '1.1rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertCircle size={18} color={c.danger}/> Target Emergency Request</h3>
+            </div>
+
+            <form onSubmit={handleCreateRequest} style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+                <div>
+                  <label style={{ display: 'block', color: c.muted, fontSize: '0.8rem', fontWeight: '500', marginBottom: '0.4rem' }}>Blood Group</label>
+                  <select style={{ width: '100%', padding: '0.6rem', borderRadius: '4px', background: c.inputBg, border: c.cardBorder, color: c.textHighlight, outline: 'none', fontSize: '0.9rem' }} value={requestData.bloodType} onChange={(e) => setRequestData({...requestData, bloodType: e.target.value})}>
+                    {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', color: c.muted, fontSize: '0.8rem', fontWeight: '500', marginBottom: '0.4rem' }}>Quantity</label>
+                  <input type="number" min="1" className="no-spinner" style={{ width: '100%', padding: '0.6rem', borderRadius: '4px', background: c.inputBg, border: c.cardBorder, color: c.textHighlight, outline: 'none', fontSize: '0.9rem' }} value={requestData.quantity} onChange={(e) => setRequestData({...requestData, quantity: e.target.value})} />
+                </div>
               </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Quantity (Units)</label>
-                <input 
-                  type="number" 
-                  min="1"
-                  style={styles.numberInput}
-                  value={requestData.quantity}
-                  onChange={(e) => setRequestData({...requestData, quantity: e.target.value})}
-                />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Urgency</label>
-                <select 
-                  style={styles.select}
-                  value={requestData.urgency}
-                  onChange={(e) => setRequestData({...requestData, urgency: e.target.value})}
-                >
+              
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', color: c.muted, fontSize: '0.8rem', fontWeight: '500', marginBottom: '0.4rem' }}>Priority Level</label>
+                <select style={{ width: '100%', padding: '0.6rem', borderRadius: '4px', background: c.inputBg, border: c.cardBorder, color: c.textHighlight, outline: 'none', fontSize: '0.9rem' }} value={requestData.urgency} onChange={(e) => setRequestData({...requestData, urgency: e.target.value})}>
                   <option value="High">High</option>
                   <option value="Critical">Critical</option>
                   <option value="Medium">Medium</option>
                 </select>
               </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Location (Lat, Lng)</label>
-                <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
-                    <input 
-                      type="number" 
-                      placeholder="Lat"
-                      style={styles.numberInput}
-                      value={requestData.location.lat}
-                      onChange={(e) => setRequestData({...requestData, location: {...requestData.location, lat: parseFloat(e.target.value)}})}
-                    />
-                    <input 
-                      type="number" 
-                      placeholder="Lng"
-                      style={styles.numberInput}
-                      value={requestData.location.lng}
-                      onChange={(e) => setRequestData({...requestData, location: {...requestData.location, lng: parseFloat(e.target.value)}})}
-                    />
-                    <button 
-                      type="button" 
-                      onClick={getCurrentLocation}
-                      style={{
-                        padding: '0.5rem', 
-                        backgroundColor: '#3b82f6', 
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '8px', 
-                        cursor: 'pointer',
-                        fontSize: '0.8rem'
-                      }}
-                      title="Get Current Location"
-                    >
-                      📍 Use Current
-                    </button>
-                </div>
+              
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: c.muted, fontSize: '0.8rem', fontWeight: '500', marginBottom: '0.4rem' }}>
+                   Dispatch Location
+                   <span onClick={getCurrentLocation} style={{ color: c.primary, cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}><MapPin size={12}/> Detect</span>
+                </label>
+                <input type="text" placeholder="Address..." style={{ width: '100%', padding: '0.6rem', borderRadius: '4px', background: c.inputBg, border: c.cardBorder, color: c.textHighlight, outline: 'none', fontSize: '0.9rem' }} value={requestData.location.address} onChange={(e) => setRequestData({...requestData, location: {...requestData.location, address: e.target.value}})} />
               </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Address</label>
-                <input 
-                  type="text" 
-                  style={styles.select}
-                  value={requestData.location.address}
-                  onChange={(e) => setRequestData({...requestData, location: {...requestData.location, address: e.target.value}})}
-                />
+              
+              <div style={{ marginBottom: '2rem' }}>
+                <label style={{ display: 'block', color: c.muted, fontSize: '0.8rem', fontWeight: '500', marginBottom: '0.4rem' }}>Internal Notes</label>
+                <textarea style={{ width: '100%', minHeight: '80px', padding: '0.6rem', borderRadius: '4px', background: c.inputBg, border: c.cardBorder, color: c.textHighlight, outline: 'none', resize: 'vertical', fontSize: '0.9rem' }} value={requestData.notes} onChange={(e) => setRequestData({...requestData, notes: e.target.value})} placeholder="Patient ID, specific ward..." />
               </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Notes</label>
-                <textarea 
-                  style={{...styles.select, minHeight: '80px'}}
-                  value={requestData.notes}
-                  onChange={(e) => setRequestData({...requestData, notes: e.target.value})}
-                  placeholder="Additional details..."
-                />
-              </div>
-              <div style={{display: 'flex', gap: '1rem', marginTop: '2rem'}}>
-                <button type="submit" style={{...styles.button, backgroundColor: '#ef4444', flex: 1}}>
-                  Broadcast Request
-                </button>
-                <button 
-                  type="button" 
-                  style={{...styles.button, backgroundColor: '#6b7280', flex: 1}}
-                  onClick={() => setShowRequestModal(false)}
-                >
-                  Cancel
-                </button>
+              
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button type="button" onClick={() => setShowRequestModal(false)} style={{ flex: 1, padding: '0.6rem', background: 'transparent', color: c.textHighlight, border: c.cardBorder, borderRadius: '4px', cursor: 'pointer', fontWeight: '500' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '0.6rem', background: c.primary, color: '#ffffff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>Broadcast</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Forecast Modal */}
       {showForecastModal && (
-        <div style={styles.modalOverlay}>
-          <div style={{...styles.modalContent, maxWidth: '700px'}}>
-            <h3 style={{...styles.cardTitle, marginBottom: '1.5rem'}}>AI Demand Forecast</h3>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: c.backdrop, backdropFilter: 'blur(2px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '10vh', zIndex: 1000, padding: '3rem 1rem' }}>
+          <div style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '8px', padding: '0', width: '100%', maxWidth: '750px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)' }}>
             
-            {loadingForecast ? (
-              <p>Generating forecast...</p>
-            ) : (
-              <div style={{lineHeight: '1.6', color: '#374151', maxHeight: '60vh', overflowY: 'auto'}}>
-                 <ReactMarkdown 
-                    components={{
-                      p: ({node, ...props}) => <p style={{margin: 0, marginBottom: '0.5rem'}} {...props} />,
-                      ul: ({node, ...props}) => <ul style={{paddingLeft: '1.5rem', margin: '0.5rem 0'}} {...props} />,
-                      li: ({node, ...props}) => <li style={{marginBottom: '0.25rem'}} {...props} />,
-                      strong: ({node, ...props}) => <strong style={{fontWeight: '600'}} {...props} />
-                    }}
-                 >
-                   {forecast}
-                 </ReactMarkdown>
-              </div>
-            )}
+            <div style={{ padding: '1.5rem', borderBottom: c.cardBorder, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+               <h3 style={{ color: c.textHighlight, fontSize: '1.1rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><BrainCircuit size={18} color={c.primary}/> Predictive Analysis</h3>
+            </div>
 
-            <div style={{marginTop: '2rem', textAlign: 'right'}}>
-              <button 
-                style={{...styles.button, backgroundColor: '#6b7280'}}
-                onClick={() => setShowForecastModal(false)}
-              >
-                Close
-              </button>
+            <div style={{ overflowY: 'auto', padding: '1.5rem' }}>
+              {loadingForecast ? (
+                <div style={{ padding: '3rem', textAlign: 'center', color: c.muted, fontSize: '0.9rem' }}>Executing forecast models...</div>
+              ) : (
+                <div style={{ lineHeight: '1.7', color: c.muted, fontSize: '0.9rem' }}>
+                  <ReactMarkdown 
+                    components={{
+                      p: ({...props}) => <p style={{ margin: '0 0 1rem 0' }} {...props} />,
+                      strong: ({...props}) => <strong style={{ color: c.textHighlight, fontWeight: '600' }} {...props} />,
+                      ul: ({...props}) => <ul style={{ paddingLeft: '1.5rem', marginBottom: '1.5rem' }} {...props} />,
+                      li: ({...props}) => <li style={{ marginBottom: '0.4rem', color: c.textHighlight }} {...props} />,
+                      h1: ({...props}) => <h1 style={{ color: c.textHighlight, fontSize: '1.25rem', marginTop: '1.5rem', marginBottom: '1rem', borderBottom: c.cardBorder, paddingBottom: '0.5rem' }} {...props} />,
+                      h2: ({...props}) => <h2 style={{ color: c.textHighlight, fontSize: '1.1rem', marginTop: '1.5rem', marginBottom: '0.75rem' }} {...props} />,
+                      h3: ({...props}) => <h3 style={{ color: c.textHighlight, fontSize: '1rem', marginTop: '1.5rem', marginBottom: '0.5rem' }} {...props} />
+                    }}
+                  >
+                    {forecast}
+                  </ReactMarkdown>
+                </div>
+              )}
+            </div>
+            
+            <div style={{ padding: '1rem 1.5rem', borderTop: c.cardBorder, display: 'flex', justifyContent: 'flex-end', background: c.inputBg, borderBottomLeftRadius: '8px', borderBottomRightRadius: '8px' }}>
+              <button onClick={() => setShowForecastModal(false)} style={{ padding: '0.5rem 1.25rem', background: c.cardBg, color: c.textHighlight, border: c.cardBorder, borderRadius: '4px', cursor: 'pointer', fontWeight: '500', fontSize: '0.85rem' }}>Close</button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 };

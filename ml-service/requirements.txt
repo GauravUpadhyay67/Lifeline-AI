@@ -8,10 +8,6 @@ pillow
 numpy
 pandas
 scikit-learn
-google-generativeai
+openai
 transformers
-torch
 datasets
-scikit-learn
-torchvision
-

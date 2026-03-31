@@ -40,8 +40,7 @@ const createRequest = asyncHandler(async (req, res) => {
     let nearbyDonors = [];
     try {
         const query = {
-            role: 'donor',
-            // bloodType: bloodType, // Removed filter to notify all nearby donors
+            isBloodDonor: true,
             isOnline: true,
             location: {
                 $near: {
@@ -53,18 +52,9 @@ const createRequest = asyncHandler(async (req, res) => {
                 }
             }
         };
-        console.log("Donor Search Query:", JSON.stringify(query, null, 2));
 
         nearbyDonors = await User.find(query);
         console.log(`Found ${nearbyDonors.length} nearby donors.`);
-        if (nearbyDonors.length === 0) {
-             // Debug: Check if any online donors exist at all
-             const onlineDonors = await User.find({ role: 'donor', isOnline: true });
-             console.log(`Total Online Donors in DB: ${onlineDonors.length}`);
-             if (onlineDonors.length > 0) {
-                 console.log("Sample Online Donor:", onlineDonors[0]);
-             }
-        }
 
     } catch (err) {
         console.error("Geospatial query failed:", err.message);
@@ -74,9 +64,6 @@ const createRequest = asyncHandler(async (req, res) => {
     const io = req.app.get('io');
     if (io && nearbyDonors.length > 0) {
       nearbyDonors.forEach(donor => {
-          // Emit to specific donor's room (joined on login/connection)
-          const fs = require('fs');
-          fs.appendFileSync('debug.log', `Emitting to donor ${donor._id.toString()}\n`);
           io.to(donor._id.toString()).emit('new_blood_request', {
               requestId: request._id,
               hospitalName: req.user.name,
@@ -162,7 +149,7 @@ const getNearbyRequests = asyncHandler(async (req, res) => {
 
     const requests = await BloodRequest.find({
         status: 'open',
-        // bloodType: req.user.bloodType, // Removed filter to allow all donors to see requests
+
         location: {
             $near: {
                 $geometry: {

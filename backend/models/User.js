@@ -17,14 +17,30 @@ const userSchema = mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['patient', 'doctor', 'donor', 'hospital'],
+    enum: ['patient', 'doctor', 'hospital', 'admin'],
     default: 'patient',
   },
+
+  // --- Verification & Trust ---
+  isVerified: {
+    type: Boolean,
+    default: true, // Patients are auto-verified; doctors/hospitals set to false on register
+  },
+  verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Admin or Hospital who verified
+  verificationDocUrl: { type: String }, // Uploaded license/registration document path
+
+  // --- Blood Donor (Feature Flag, not a separate role) ---
+  isBloodDonor: {
+    type: Boolean,
+    default: false,
+  },
+
   // Common Fields
   phone: { type: String },
   address: { type: String },
+  profilePic: { type: String },
   
-  // Patient/Donor Fields
+  // Patient Fields
   bloodType: { type: String, enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] },
   age: { type: Number },
   gender: { type: String, enum: ['Male', 'Female', 'Other'] },
@@ -32,10 +48,14 @@ const userSchema = mongoose.Schema({
   // Doctor Fields
   specialization: { type: String },
   licenseNumber: { type: String },
-  hospitalName: { type: String }, // Also for Hospital role if needed as separate field, or use name
-  
-  // Donor Fields
-  // Donor Fields
+  hospitalName: { type: String },
+  practiceType: {
+    type: String,
+    enum: ['hospital_affiliated', 'independent_clinic'],
+  },
+  affiliatedHospitalId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Linked hospital for affiliated doctors
+
+  // Donor-related Fields (available on any user with isBloodDonor=true)
   lastDonationDate: { type: Date },
   
   // Real-time & Location Fields
@@ -66,9 +86,9 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
   if (!this.isModified('password')) {
-    next();
+    return;
   }
 
   const salt = await bcrypt.genSalt(10);

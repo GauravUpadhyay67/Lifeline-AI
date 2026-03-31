@@ -18,11 +18,6 @@ dist/
 build/
 coverage/
 
-# ML Service Specific
-ml-service/data/
-ml-service/custom_model.pth
-ml-service/*.pth
-
 # IDEs
 .vscode/
 .idea/

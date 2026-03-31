@@ -1,3 +1,4 @@
+import { API_URL, ML_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { connectSocket, disconnectSocket, socket } from '../../utils/socket';
@@ -67,7 +68,7 @@ const DonorDashboard = ({ user }) => {
       const config = {
         headers: { Authorization: `Bearer ${token}` },
       };
-      const response = await axios.get('http://localhost:5000/api/notifications', config);
+      const response = await axios.get('${API_URL}/api/notifications', config);
       setNotifications(response.data);
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -80,7 +81,7 @@ const DonorDashboard = ({ user }) => {
       const config = {
         headers: { Authorization: `Bearer ${token}` },
       };
-      const response = await axios.get('http://localhost:5000/api/camps', config);
+      const response = await axios.get('${API_URL}/api/camps', config);
       setCamps(response.data);
       setShowCampsModal(true);
     } catch (error) {
@@ -95,7 +96,7 @@ const DonorDashboard = ({ user }) => {
       const config = {
         headers: { Authorization: `Bearer ${token}` },
       };
-      await axios.delete(`http://localhost:5000/api/notifications/${id}`, config);
+      await axios.delete(`${API_URL}/api/notifications/${id}`, config);
       setNotifications(notifications.filter(n => n._id !== id));
     } catch (error) {
       console.error('Error dismissing notification:', error);
@@ -109,7 +110,7 @@ const DonorDashboard = ({ user }) => {
         const config = {
             headers: { Authorization: `Bearer ${token}` },
         };
-        await axios.put(`http://localhost:5000/api/requests/${incomingRequest.requestId}/accept`, {}, config);
+        await axios.put(`${API_URL}/api/requests/${incomingRequest.requestId}/accept`, {}, config);
         alert('Thank you! The hospital has been notified. Please proceed to the location.');
         setIncomingRequest(null);
         // Navigate to map or show directions
@@ -244,7 +245,7 @@ const DonorDashboard = ({ user }) => {
   };
 
   return (
-    <div>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem'}}>
         <h2 style={{fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', margin: 0}}>Blood Donor Dashboard</h2>
         <div style={{

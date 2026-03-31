@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { API_URL, ML_URL } from '../config';
 import axios from 'axios';
+import { Activity, Calendar, ChevronDown, ChevronUp, Clock, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
 const MedicalReports = () => {
@@ -7,59 +9,93 @@ const MedicalReports = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchReports = async () => {
-      const userInfo = JSON.parse(localStorage.getItem('user'));
-      const token = userInfo?.token;
-
-      if (!token) return;
-
-      try {
-        const response = await axios.get('http://localhost:5000/api/reports', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        setReports(response.data);
-      } catch (error) {
-        console.error('Error fetching reports:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchReports();
   }, []);
+
+  const fetchReports = async () => {
+    const userInfo = JSON.parse(localStorage.getItem('user'));
+    const token = userInfo?.token;
+    if (!token) return;
+
+    try {
+      const response = await axios.get('${API_URL}/api/reports', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      setReports(response.data);
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const styles = {
     container: {
       padding: '2rem',
-      maxWidth: '1000px',
+      maxWidth: '1200px',
       margin: '0 auto',
+      minHeight: '85vh',
     },
     header: {
       textAlign: 'center',
-      marginBottom: '2rem',
-      color: '#1f2937',
+      marginBottom: '3rem',
+    },
+    title: {
+      fontSize: '2.5rem',
+      fontWeight: '800',
+      background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      marginBottom: '0.5rem',
+    },
+    subtitle: {
+        color: '#64748b',
+        fontSize: '1.1rem',
     },
     grid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
       gap: '2rem',
     },
     card: {
       backgroundColor: 'white',
-      borderRadius: '8px',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+      borderRadius: '20px',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
       overflow: 'hidden',
-      border: '1px solid #e5e7eb',
+      border: '1px solid #f1f5f9',
+      transition: 'all 0.3s ease',
       display: 'flex',
       flexDirection: 'column',
+      position: 'relative',
+    },
+    cardHover: {
+        transform: 'translateY(-5px)',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    },
+    imageContainer: {
+        position: 'relative',
+        height: '220px',
+        overflow: 'hidden',
     },
     image: {
       width: '100%',
-      height: '200px',
+      height: '100%',
       objectFit: 'cover',
-      borderBottom: '1px solid #e5e7eb',
+    },
+    badge: {
+        position: 'absolute',
+        top: '1rem',
+        right: '1rem',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: '0.25rem 0.75rem',
+        borderRadius: '9999px',
+        fontSize: '0.75rem',
+        fontWeight: '700',
+        color: '#0f172a',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.25rem'
     },
     content: {
       padding: '1.5rem',
@@ -67,77 +103,121 @@ const MedicalReports = () => {
       display: 'flex',
       flexDirection: 'column',
     },
-    date: {
-      fontSize: '0.875rem',
-      color: '#6b7280',
-      marginBottom: '0.5rem',
+    metaRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1rem',
+        marginBottom: '1rem',
+        color: '#64748b',
+        fontSize: '0.85rem',
     },
-    analysisPreview: {
-      fontSize: '0.95rem',
-      color: '#374151',
-      lineHeight: '1.5',
-      flex: 1,
-      overflow: 'hidden',
-      display: '-webkit-box',
-      WebkitLineClamp: 3,
-      WebkitBoxOrient: 'vertical',
+    metaItem: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.25rem',
+    },
+    divider: {
+        height: '1px',
+        backgroundColor: '#e2e8f0',
+        margin: '0.5rem 0 1rem 0',
+    },
+    analysisBox: {
+        backgroundColor: '#f8fafc',
+        borderRadius: '12px',
+        padding: '1rem',
+        fontSize: '0.95rem',
+        color: '#334155',
+        lineHeight: '1.6',
+        marginBottom: '1rem',
     },
     expandButton: {
-      marginTop: '1rem',
-      color: '#0ea5e9',
-      background: 'none',
+      width: '100%',
+      padding: '0.75rem',
+      backgroundColor: '#f0f9ff',
+      color: '#0284c7',
       border: 'none',
+      borderRadius: '8px',
       cursor: 'pointer',
       fontWeight: '600',
-      padding: 0,
-      textAlign: 'left',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '0.5rem',
+      transition: 'background-color 0.2s',
+      marginTop: 'auto'
     },
-    fullAnalysis: {
-      marginTop: '1rem',
-      paddingTop: '1rem',
-      borderTop: '1px solid #e5e7eb',
+    emptyState: {
+        textAlign: 'center',
+        padding: '4rem 2rem',
+        backgroundColor: 'white',
+        borderRadius: '24px',
+        border: '2px dashed #e2e8f0',
+        maxWidth: '600px',
+        margin: '2rem auto'
     }
   };
 
   const ReportCard = ({ report }) => {
     const [expanded, setExpanded] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
 
     return (
-      <div style={styles.card}>
-        <img 
-          src={`http://localhost:5000${report.imageUrl}`} 
-          alt="Medical Report" 
-          style={styles.image} 
-        />
+      <div 
+        style={{...styles.card, ...(isHovered ? styles.cardHover : {})}}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div style={styles.imageContainer}>
+             <img 
+               src={`${API_URL}${report.imageUrl}`} 
+               alt="Medical Scan" 
+               style={styles.image} 
+             />
+             <div style={styles.badge}>
+                 <Activity size={12} color="#0ea5e9" />
+                 AI Analyzed
+             </div>
+        </div>
+        
         <div style={styles.content}>
-          <div style={styles.date}>
-            {new Date(report.createdAt).toLocaleDateString()} at {new Date(report.createdAt).toLocaleTimeString()}
+          <div style={styles.metaRow}>
+            <div style={styles.metaItem}>
+                <Calendar size={14} />
+                {new Date(report.createdAt).toLocaleDateString()}
+            </div>
+            <div style={styles.metaItem}>
+                <Clock size={14} />
+                {new Date(report.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            </div>
           </div>
+
+          <div style={styles.divider} />
           
-          {expanded ? (
-            <div style={styles.fullAnalysis}>
-               <ReactMarkdown 
-                  components={{
+          <div style={{
+              ...styles.analysisBox, 
+              maxHeight: expanded ? 'none' : '100px', 
+              overflow: 'hidden',
+              maskImage: expanded ? 'none' : 'linear-gradient(to bottom, black 60%, transparent 100%)'
+          }}>
+             <ReactMarkdown 
+                components={{
                     p: ({node, ...props}) => <p style={{margin: 0, marginBottom: '0.5rem'}} {...props} />,
-                    ul: ({node, ...props}) => <ul style={{paddingLeft: '1.5rem', margin: '0.5rem 0'}} {...props} />,
-                    li: ({node, ...props}) => <li style={{marginBottom: '0.25rem'}} {...props} />,
-                    strong: ({node, ...props}) => <strong style={{fontWeight: '600'}} {...props} />
-                  }}
-               >
+                    strong: ({node, ...props}) => <strong style={{color: '#0f172a', fontWeight: '700'}} {...props} />
+                }}
+             >
                  {report.analysis}
-               </ReactMarkdown>
-            </div>
-          ) : (
-            <div style={styles.analysisPreview}>
-              <ReactMarkdown>{report.analysis}</ReactMarkdown>
-            </div>
-          )}
+             </ReactMarkdown>
+          </div>
 
           <button 
-            style={styles.expandButton}
+            style={{...styles.expandButton, backgroundColor: expanded ? '#f1f5f9' : '#f0f9ff', color: expanded ? '#64748b' : '#0284c7'}}
             onClick={() => setExpanded(!expanded)}
           >
-            {expanded ? 'Show Less' : 'Read Full Report'}
+            {expanded ? (
+                <>Show Less <ChevronUp size={16} /></>
+            ) : (
+                <>Read Full Analysis <ChevronDown size={16} /></>
+            )}
           </button>
         </div>
       </div>
@@ -146,14 +226,42 @@ const MedicalReports = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.header}>My Medical Reports</h1>
+      <div style={styles.header}>
+        <h1 style={styles.title}>Medical Reports</h1>
+        <p style={styles.subtitle}>Securely stored history of your AI-powered diagnostics</p>
+      </div>
       
       {loading ? (
-        <p style={{textAlign: 'center'}}>Loading reports...</p>
+        <div style={{textAlign: 'center', padding: '4rem'}}>
+            <p style={{color: '#64748b'}}>Loading your records...</p>
+        </div>
       ) : reports.length === 0 ? (
-        <p style={{textAlign: 'center', color: '#6b7280'}}>
-          No reports found. Use the <strong>AI Disease Detection</strong> feature to analyze your first report.
-        </p>
+        <div style={styles.emptyState}>
+            <div style={{
+                background: '#f1f5f9', width: '80px', height: '80px', borderRadius: '50%', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto'
+            }}>
+                <Search size={32} color="#94a3b8" />
+            </div>
+            <h3 style={{fontSize: '1.5rem', marginBottom: '0.5rem', color: '#1e293b'}}>No Reports Found</h3>
+            <p style={{color: '#64748b', marginBottom: '1.4rem'}}>
+              You haven't uploaded any medical images for analysis yet.
+            </p>
+            <a 
+                href="/disease-detection" 
+                style={{
+                    display: 'inline-block',
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: '#0ea5e9',
+                    color: 'white',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontWeight: '600'
+                }}
+            >
+                Start New Analysis
+            </a>
+        </div>
       ) : (
         <div style={styles.grid}>
           {reports.map((report) => (

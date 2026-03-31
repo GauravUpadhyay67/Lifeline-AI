@@ -1,7 +1,8 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { API_URL as BASE_URL } from '../../config';
 
-const API_URL = 'http://localhost:5000/api/users';
+const API_URL = `${BASE_URL}/api/users`;
 
 // Register user
 export const register = createAsyncThunk(
@@ -72,6 +73,10 @@ export const authSlice = createSlice({
       state.isError = false;
       state.message = '';
     },
+    setCredentials: (state, action) => {
+      state.user = action.payload;
+      localStorage.setItem('user', JSON.stringify(action.payload));
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -109,5 +114,5 @@ export const authSlice = createSlice({
   },
 });
 
-export const { reset } = authSlice.actions;
+export const { reset, setCredentials } = authSlice.actions;
 export default authSlice.reducer;
