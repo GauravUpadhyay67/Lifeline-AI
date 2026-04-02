@@ -11,3 +11,4 @@ scikit-learn
 openai
 transformers
 datasets
+python-dotenv
