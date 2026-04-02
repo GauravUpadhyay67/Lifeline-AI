@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 
-const API_URL = `${import.meta.env.VITE_API_URL || '${API_URL}'}/api/users`;
+const USERS_API_URL = `${API_URL}/api/users`;
 
 const AdminDashboard = () => {
   const { darkMode } = useTheme();
@@ -34,7 +34,7 @@ const AdminDashboard = () => {
   const fetchPending = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/pending-verification`, {
+      const res = await fetch(`${USERS_API_URL}/pending-verification`, {
         headers: { Authorization: `Bearer ${user?.token}` },
       });
       if (!res.ok) throw new Error('Failed to fetch');
@@ -56,7 +56,7 @@ const AdminDashboard = () => {
     if (!window.confirm(`Approve ${name}?`)) return;
     setActionLoading(id);
     try {
-      const res = await fetch(`${API_URL}/${id}/verify`, {
+      const res = await fetch(`${USERS_API_URL}/${id}/verify`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${user.token}` },
       });
@@ -74,7 +74,7 @@ const AdminDashboard = () => {
     if (!window.confirm(`Reject and delete ${name}'s registration? This cannot be undone.`)) return;
     setActionLoading(id);
     try {
-      const res = await fetch(`${API_URL}/${id}/reject`, {
+      const res = await fetch(`${USERS_API_URL}/${id}/reject`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${user.token}` },
       });
