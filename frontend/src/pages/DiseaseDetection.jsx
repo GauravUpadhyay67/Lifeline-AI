@@ -63,7 +63,7 @@ const DiseaseDetection = () => {
     }
 
     try {
-      const response = await axios.post('${API_URL}/api/reports/analyze', formData, {
+      const response = await axios.post(`${API_URL}/api/reports/analyze`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`,
@@ -184,13 +184,13 @@ const DiseaseDetection = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="detection-container" style={styles.container}>
       <div style={styles.header}>
-        <h1 style={styles.title}>AI Disease Detection</h1>
+        <h1 className="detection-title" style={styles.title}>AI Disease Detection</h1>
         <p style={styles.subtitle}>Upload medical imaging for instant AI-powered analysis</p>
       </div>
 
-      <div style={styles.grid}>
+      <div className="detection-grid" style={styles.grid}>
           {/* Upload Section */}
           <div style={styles.uploadCard}>
               <h2 style={{fontSize: '1.5rem', marginBottom: '1.5rem', color: '#1e293b'}}>Upload Image</h2>

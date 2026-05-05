@@ -18,7 +18,7 @@ const MedicalReports = () => {
     if (!token) return;
 
     try {
-      const response = await axios.get('${API_URL}/api/reports', {
+      const response = await axios.get(`${API_URL}/api/reports`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       setReports(response.data);
@@ -225,9 +225,9 @@ const MedicalReports = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="reports-container" style={styles.container}>
       <div style={styles.header}>
-        <h1 style={styles.title}>Medical Reports</h1>
+        <h1 className="reports-title" style={styles.title}>Medical Reports</h1>
         <p style={styles.subtitle}>Securely stored history of your AI-powered diagnostics</p>
       </div>
       
@@ -263,7 +263,7 @@ const MedicalReports = () => {
             </a>
         </div>
       ) : (
-        <div style={styles.grid}>
+        <div className="reports-grid" style={styles.grid}>
           {reports.map((report) => (
             <ReportCard key={report._id} report={report} />
           ))}

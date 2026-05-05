@@ -1,4 +1,4 @@
-import { Activity, ChevronDown, LayoutDashboard, LogOut, Moon, Settings, Sun, User } from 'lucide-react';
+import { Activity, ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Settings, Sun, User, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -14,6 +14,7 @@ const Navbar = () => {
   
   const [isScrolled, setIsScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -31,11 +32,17 @@ const Navbar = () => {
     };
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const onLogout = () => {
     dispatch(logout());
     dispatch(reset());
     navigate('/');
     setProfileOpen(false);
+    setMobileMenuOpen(false);
   };
 
   const isActive = (path) => location.pathname === path;
@@ -51,9 +58,11 @@ const Navbar = () => {
   const textColor = darkMode ? '#cbd5e1' : '#475569';
   const accentColor = '#38bdf8';
 
+  const mobileMenuBg = darkMode ? 'rgba(15, 23, 42, 0.98)' : 'rgba(255, 255, 255, 0.98)';
+
   return (
     <>
-      <nav style={{
+      <nav className="navbar-main" style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -84,8 +93,8 @@ const Navbar = () => {
           <span>Lifeline AI</span>
         </Link>
 
-        {/* Right side */}
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        {/* Desktop Right side */}
+        <div className="nav-links-desktop" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           {/* Home Link */}
           <Link 
             to="/" 
@@ -262,12 +271,192 @@ const Navbar = () => {
             </Link>
           )}
         </div>
+
+        {/* Mobile: Theme toggle + Hamburger */}
+        <div className="mobile-menu-btn" style={{
+          display: 'none',
+          alignItems: 'center',
+          gap: '0.5rem',
+        }}>
+          <button 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: textColor, padding: '0.45rem', borderRadius: '10px', display: 'flex', alignItems: 'center' }}
+            onClick={toggleTheme}
+          >
+            {darkMode ? <Sun size={19} /> : <Moon size={19} />}
+          </button>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: textColor,
+              padding: '0.4rem',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: mobileMenuBg,
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          zIndex: 999,
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '5rem 2rem 2rem',
+          animation: 'mobileMenuIn 0.25s ease-out',
+        }}>
+          {/* Close button at top right */}
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              position: 'absolute',
+              top: '1rem',
+              right: '1rem',
+              background: 'none',
+              border: 'none',
+              color: textColor,
+              cursor: 'pointer',
+              padding: '0.5rem',
+            }}
+          >
+            <X size={28} />
+          </button>
+
+          {user && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              marginBottom: '2rem',
+              paddingBottom: '1.5rem',
+              borderBottom: `1px solid ${darkMode ? 'rgba(148,163,184,0.1)' : '#f1f5f9'}`,
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: darkMode
+                  ? 'linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2))'
+                  : 'linear-gradient(135deg, #dbeafe, #ede9fe)',
+                color: darkMode ? '#38bdf8' : '#2563eb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: '700',
+                fontSize: '1.1rem',
+              }}>
+                {user.name ? user.name.charAt(0).toUpperCase() : <User size={20} />}
+              </div>
+              <div>
+                <p style={{ margin: 0, fontWeight: '700', color: darkMode ? '#f1f5f9' : '#0f172a', fontSize: '1.1rem' }}>{user.name}</p>
+                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: darkMode ? '#64748b' : '#94a3b8', textTransform: 'capitalize' }}>{user.role}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile Nav Links */}
+          {[
+            { to: '/', label: 'Home' },
+            ...(user ? [
+              { to: '/dashboard', label: 'Dashboard' },
+              { to: '/disease-detection', label: 'AI Health Checkup' },
+              { to: '/chatbot', label: 'Health Assistant' },
+              { to: '/medical-reports', label: 'Medical Reports' },
+              { to: '/profile', label: 'Profile' },
+            ] : []),
+          ].map(item => (
+            <Link
+              key={item.to}
+              to={item.to}
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                textDecoration: 'none',
+                color: isActive(item.to) ? accentColor : (darkMode ? '#f1f5f9' : '#1e293b'),
+                fontWeight: isActive(item.to) ? '700' : '500',
+                fontSize: '1.15rem',
+                padding: '1rem 0.5rem',
+                borderBottom: `1px solid ${darkMode ? 'rgba(148,163,184,0.08)' : '#f1f5f9'}`,
+                display: 'block',
+                transition: 'color 0.2s',
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+
+          {/* Bottom actions */}
+          <div style={{ marginTop: 'auto', paddingTop: '1.5rem' }}>
+            {user ? (
+              <button
+                onClick={onLogout}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  background: darkMode ? 'rgba(248, 113, 113, 0.1)' : '#fef2f2',
+                  color: '#f87171',
+                  border: `1px solid ${darkMode ? 'rgba(248, 113, 113, 0.2)' : '#fecaca'}`,
+                  borderRadius: '14px',
+                  fontWeight: '700',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                }}
+              >
+                <LogOut size={18} /> Logout
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '1rem',
+                  background: darkMode
+                    ? 'linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)'
+                    : 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  textAlign: 'center',
+                  fontWeight: '700',
+                  fontSize: '1rem',
+                  borderRadius: '14px',
+                  boxSizing: 'border-box',
+                }}
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes dropIn {
           from { opacity: 0; transform: translateY(-8px) scale(0.97); }
           to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes mobileMenuIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
       `}</style>
     </>

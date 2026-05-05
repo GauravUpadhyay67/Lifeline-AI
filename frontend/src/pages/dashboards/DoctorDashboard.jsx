@@ -79,7 +79,7 @@ const DoctorDashboard = ({ user }) => {
     const token = user.token;
 
     try {
-      const response = await axios.post('${API_URL}/api/reports/analyze', formData, {
+      const response = await axios.post(`${API_URL}/api/reports/analyze`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`,
@@ -161,7 +161,7 @@ const DoctorDashboard = ({ user }) => {
         pointerEvents: 'none',
       }} />
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 2rem 4rem 2rem', position: 'relative', zIndex: 10, fontFamily: "'Inter', sans-serif" }}>
+      <div className="dashboard-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 2rem 4rem 2rem', position: 'relative', zIndex: 10, fontFamily: "'Inter', sans-serif" }}>
         
         {/* Header & Affiliation */}
         <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
@@ -203,7 +203,7 @@ const DoctorDashboard = ({ user }) => {
         </header>
 
         {/* Stats Section */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+        <div className="action-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
             
             <div style={{ background: c.cardBg, padding: '1.5rem', borderRadius: '24px', boxShadow: c.boxShadow, border: c.cardBorder, display: 'flex', alignItems: 'center', gap: '1.5rem', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
                 <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: c.primaryBg, color: c.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -236,7 +236,7 @@ const DoctorDashboard = ({ user }) => {
             </div>
         </div>
 
-        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', alignItems: 'start'}}>
+        <div className="doctor-cards-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', alignItems: 'start'}}>
             {/* Main Content - Appointments */}
             <div>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: '700', color: c.textHighlight, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -244,7 +244,7 @@ const DoctorDashboard = ({ user }) => {
                 </h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {appointments.length > 0 ? appointments.map(appt => (
-                        <div key={appt._id} style={{ background: c.cardBg, padding: '1.5rem', borderRadius: '20px', border: c.cardBorder, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: c.boxShadow }}>
+                        <div className="appointment-card" key={appt._id} style={{ background: c.cardBg, padding: '1.5rem', borderRadius: '20px', border: c.cardBorder, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: c.boxShadow }}>
                             <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
                                 <div style={{
                                   width: '52px', height: '52px', borderRadius: '14px', 
@@ -325,7 +325,7 @@ const DoctorDashboard = ({ user }) => {
         {/* Upload Modal */}
         {showUploadModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: c.backdrop, backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '10vh', zIndex: 1000, padding: '3rem 1rem' }} onClick={() => setShowUploadModal(false)}>
-            <div style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '24px', padding: '0', width: '100%', maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', WebkitBackdropFilter: 'blur(24px)', backdropFilter: 'blur(24px)' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-content" style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '24px', padding: '0', width: '100%', maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', WebkitBackdropFilter: 'blur(24px)', backdropFilter: 'blur(24px)' }} onClick={e => e.stopPropagation()}>
               
               <div style={{ padding: '1.5rem 2rem', borderBottom: c.cardBorder, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                  <h3 style={{ color: c.textHighlight, fontSize: '1.25rem', fontWeight: '700', margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

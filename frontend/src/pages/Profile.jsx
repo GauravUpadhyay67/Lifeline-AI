@@ -107,7 +107,7 @@ const Profile = () => {
                     'Content-Type': 'multipart/form-data'
                 }
             };
-            const res = await axios.put('${API_URL}/api/users/profile', data, config);
+            const res = await axios.put(`${API_URL}/api/users/profile`, data, config);
             dispatch(setCredentials({ ...res.data, token: user.token }));
             setMessage({ type: 'success', text: 'Changes saved successfully!' });
             
@@ -346,9 +346,9 @@ const Profile = () => {
               pointerEvents: 'none',
             }} />
 
-            <div style={styles.container}>
+            <div className="profile-container" style={styles.container}>
                 {/* Sidebar */}
-                <div style={styles.sidebar}>
+                <div className="profile-sidebar" style={styles.sidebar}>
                     <button onClick={() => navigate('/dashboard')} style={{alignSelf: 'flex-start', background: c.inputBg, border: c.cardBorder, padding: '0.5rem 0.75rem', borderRadius: '10px', cursor: 'pointer', color: c.textHighlight, marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600', transition: 'all 0.2s'}}>
                         <ArrowLeft size={16}/> Back
                     </button>
@@ -382,7 +382,7 @@ const Profile = () => {
                 </div>
 
                 {/* Main Content */}
-                <form style={styles.main} onSubmit={handleSubmit}>
+                <form className="profile-main" style={styles.main} onSubmit={handleSubmit}>
                     <div style={styles.header}>
                         <h2 style={styles.headerTitle}>
                             {activeTab === 'personal' && <><User size={20} color={c.primary}/> Personal Information</>}
@@ -398,7 +398,7 @@ const Profile = () => {
                         </div>
                     }
 
-                    <div style={styles.grid}>
+                    <div className="profile-form-grid" style={styles.grid}>
                         {activeTab === 'personal' && (
                             <>
                                 <div style={styles.inputGroup(false)}>

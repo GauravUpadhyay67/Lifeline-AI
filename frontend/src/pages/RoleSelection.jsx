@@ -78,7 +78,7 @@ const RoleSelection = () => {
       </div>
 
       {/* Role Cards */}
-      <div style={{
+      <div className="role-grid" style={{
         display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: '1.5rem', maxWidth: '960px', margin: '0 auto', position: 'relative', zIndex: 1,
       }}>

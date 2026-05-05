@@ -45,7 +45,7 @@ const HospitalDashboard = ({ user }) => {
 
   const fetchAffiliatedDoctors = async () => {
     try {
-      const response = await axios.get('${API_URL}/api/users/affiliated-doctors', {
+      const response = await axios.get(`${API_URL}/api/users/affiliated-doctors`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       setAffiliatedDoctors(response.data);
@@ -94,7 +94,7 @@ const HospitalDashboard = ({ user }) => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.get('${API_URL}/api/inventory', config);
+      const response = await axios.get(`${API_URL}/api/inventory`, config);
       setInventory(response.data);
       setEditStock(response.data.stock);
       setEditBeds(response.data.beds || { icu: { total: 20, occupied: 0 }, general: { total: 100, occupied: 0 } });
@@ -113,7 +113,7 @@ const HospitalDashboard = ({ user }) => {
         sanitizedStock[key] = parseInt(editStock[key], 10) || 0;
       });
 
-      const response = await axios.put('${API_URL}/api/inventory', { stock: sanitizedStock }, config);
+      const response = await axios.put(`${API_URL}/api/inventory`, { stock: sanitizedStock }, config);
       setInventory(response.data);
       setIsEditingStock(false);
     } catch (error) {
@@ -138,7 +138,7 @@ const HospitalDashboard = ({ user }) => {
         }
       };
 
-      const response = await axios.put('${API_URL}/api/inventory', { beds: sanitizedBeds }, config);
+      const response = await axios.put(`${API_URL}/api/inventory`, { beds: sanitizedBeds }, config);
       setInventory(response.data);
       setEditBeds(response.data.beds);
       setIsEditingBeds(false);
@@ -204,7 +204,7 @@ const HospitalDashboard = ({ user }) => {
         notes: requestData.notes
       };
 
-      await axios.post('${API_URL}/api/requests', payload, config);
+      await axios.post(`${API_URL}/api/requests`, payload, config);
       alert('Emergency request broadcasted successfully!');
       setShowRequestModal(false);
       setRequestData({ 
@@ -225,7 +225,7 @@ const HospitalDashboard = ({ user }) => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.get('${API_URL}/api/requests/my-requests', config);
+      const response = await axios.get(`${API_URL}/api/requests/my-requests`, config);
       setMyRequests(response.data.filter(req => req.status === 'open'));
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -251,7 +251,7 @@ const HospitalDashboard = ({ user }) => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.get('${API_URL}/api/forecast', config);
+      const response = await axios.get(`${API_URL}/api/forecast`, config);
       setForecast(response.data.forecast);
     } catch (error) {
       console.error('Error fetching forecast:', error);
@@ -335,7 +335,7 @@ const HospitalDashboard = ({ user }) => {
   );
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', minHeight: '100vh', padding: '2rem', fontFamily: "'Inter', sans-serif" }}>
+    <div className="dashboard-container" style={{ maxWidth: '1200px', margin: '0 auto', minHeight: '100vh', padding: '2rem', fontFamily: "'Inter', sans-serif" }}>
       <style>{`
         .no-spinner::-webkit-inner-spin-button,
         .no-spinner::-webkit-outer-spin-button {
@@ -390,7 +390,7 @@ const HospitalDashboard = ({ user }) => {
               </div>
 
               {inventory ? (
-                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem' }}>
+                 <div className="inventory-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem' }}>
                    {Object.entries(isEditingStock ? editStock : inventory.stock).map(([type, count]) => (
                      <div key={type} style={{ background: c.inputBg, border: c.cardBorder, padding: '1rem', borderRadius: '6px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', transition: 'border-color 0.2s', borderBottom: isEditingStock ? `2px solid ${c.primary}` : c.cardBorder }}>
                        <span style={{ fontSize: '0.85rem', fontWeight: '600', color: c.muted, marginBottom: '0.5rem' }}>Group {type}</span>
@@ -548,7 +548,7 @@ const HospitalDashboard = ({ user }) => {
       {/* Modals */}
       {showRequestModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: c.backdrop, backdropFilter: 'blur(2px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '10vh', zIndex: 1000, padding: '3rem 1rem' }}>
-          <div style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '8px', padding: '0', width: '100%', maxWidth: '480px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)' }}>
+          <div className="modal-content" style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '8px', padding: '0', width: '100%', maxWidth: '480px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)' }}>
             
             <div style={{ padding: '1.5rem', borderBottom: c.cardBorder, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                <h3 style={{ color: c.textHighlight, fontSize: '1.1rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertCircle size={18} color={c.danger}/> Target Emergency Request</h3>
@@ -601,7 +601,7 @@ const HospitalDashboard = ({ user }) => {
 
       {showForecastModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: c.backdrop, backdropFilter: 'blur(2px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '10vh', zIndex: 1000, padding: '3rem 1rem' }}>
-          <div style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '8px', padding: '0', width: '100%', maxWidth: '750px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)' }}>
+          <div className="modal-content" style={{ background: c.cardBg, border: c.cardBorder, borderRadius: '8px', padding: '0', width: '100%', maxWidth: '750px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)' }}>
             
             <div style={{ padding: '1.5rem', borderBottom: c.cardBorder, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                <h3 style={{ color: c.textHighlight, fontSize: '1.1rem', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><BrainCircuit size={18} color={c.primary}/> Predictive Analysis</h3>

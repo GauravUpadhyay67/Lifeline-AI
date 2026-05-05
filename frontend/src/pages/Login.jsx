@@ -94,7 +94,7 @@ const Login = () => {
         pointerEvents: 'none',
       }} />
 
-      <div style={{
+      <div className="auth-card" style={{
         position: 'relative',
         zIndex: 10,
         backgroundColor: c.cardBg,

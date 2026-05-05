@@ -68,7 +68,7 @@ const DonorDashboard = ({ user }) => {
       const config = {
         headers: { Authorization: `Bearer ${token}` },
       };
-      const response = await axios.get('${API_URL}/api/notifications', config);
+      const response = await axios.get(`${API_URL}/api/notifications`, config);
       setNotifications(response.data);
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -81,7 +81,7 @@ const DonorDashboard = ({ user }) => {
       const config = {
         headers: { Authorization: `Bearer ${token}` },
       };
-      const response = await axios.get('${API_URL}/api/camps', config);
+      const response = await axios.get(`${API_URL}/api/camps`, config);
       setCamps(response.data);
       setShowCampsModal(true);
     } catch (error) {
@@ -245,7 +245,7 @@ const DonorDashboard = ({ user }) => {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
+    <div className="dashboard-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem'}}>
         <h2 style={{fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', margin: 0}}>Blood Donor Dashboard</h2>
         <div style={{
@@ -259,7 +259,7 @@ const DonorDashboard = ({ user }) => {
             {locationStatus}
         </div>
       </div>
-      <div style={styles.grid}>
+      <div className="action-cards-grid" style={styles.grid}>
         <div 
           style={styles.card}
           onMouseEnter={(e) => {

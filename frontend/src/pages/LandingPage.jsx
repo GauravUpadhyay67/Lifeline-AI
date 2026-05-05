@@ -54,7 +54,7 @@ const LandingPage = () => {
     }}>
       
       {/* ═══════════════ HERO ═══════════════ */}
-      <section style={{
+      <section className="hero-section" style={{
         minHeight: '92vh',
         display: 'flex',
         flexDirection: 'column',
@@ -112,7 +112,7 @@ const LandingPage = () => {
           AI diagnostics, verified doctor consultations, and life-saving blood management — all in one secure platform built for patients, doctors, and hospitals.
         </p>
         
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', position: 'relative' }}>
+        <div className="hero-buttons" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', position: 'relative' }}>
           <button 
             style={{
               padding: '0.85rem 2.2rem', fontSize: '1rem', fontWeight: '700',
@@ -148,7 +148,7 @@ const LandingPage = () => {
         </div>
 
         {/* Trust Badges */}
-        <div style={{ display: 'flex', gap: '2rem', marginTop: '4rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div className="trust-badges" style={{ display: 'flex', gap: '2rem', marginTop: '4rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           {[
             { icon: <Shield size={18} />, text: 'Verified Doctors & Hospitals' },
             { icon: <Heart size={18} />, text: 'Integrated Donor Network' },
@@ -167,7 +167,7 @@ const LandingPage = () => {
 
       {/* ═══════════════ STATS ═══════════════ */}
       <section style={{ display: 'flex', justifyContent: 'center', padding: '0 2rem', maxWidth: '900px', margin: '-2rem auto 0', position: 'relative', zIndex: 10 }}>
-        <div style={{
+        <div className="stats-grid" style={{
           display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', width: '100%',
           background: darkMode ? 'rgba(15,23,42,0.8)' : 'rgba(255,255,255,0.95)',
           backdropFilter: 'blur(16px)', borderRadius: '18px',
@@ -197,7 +197,7 @@ const LandingPage = () => {
       </section>
 
       {/* ═══════════════ FEATURES ═══════════════ */}
-      <section id="features" style={{ padding: '7rem 2rem 5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <section id="features" className="landing-section" style={{ padding: '7rem 2rem 5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ fontSize: '0.78rem', fontWeight: '700', color: darkMode ? '#38bdf8' : '#2563eb', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>
           PLATFORM FEATURES
         </div>
@@ -208,7 +208,7 @@ const LandingPage = () => {
           From AI-powered diagnostics to blood bank management — tools that make healthcare smarter, faster, and more accessible.
         </p>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '1.25rem', maxWidth: '1100px', width: '100%' }}>
+        <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '1.25rem', maxWidth: '1100px', width: '100%' }}>
           {features.map((f, i) => (
             <div 
               key={i}
@@ -260,7 +260,7 @@ const LandingPage = () => {
           Whether you're a patient, doctor, or hospital — getting started takes less than 2 minutes.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.25rem', maxWidth: '1100px', width: '100%' }}>
+        <div className="how-it-works-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.25rem', maxWidth: '1100px', width: '100%' }}>
           {howItWorks.map((item, i) => (
             <div key={i} style={{
               padding: '1.75rem', borderRadius: '18px',
@@ -300,7 +300,7 @@ const LandingPage = () => {
           One Platform, Every Role
         </h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', maxWidth: '1000px', width: '100%' }}>
+        <div className="roles-section-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', maxWidth: '1000px', width: '100%' }}>
           {[
             {
               role: '🩺 For Patients',
@@ -347,7 +347,7 @@ const LandingPage = () => {
 
       {/* ═══════════════ BOTTOM CTA ═══════════════ */}
       <section style={{ padding: '4rem 2rem 5rem', display: 'flex', justifyContent: 'center' }}>
-        <div style={{
+        <div className="cta-section-card" style={{
           maxWidth: '750px', width: '100%', padding: '3rem 2rem', borderRadius: '22px',
           background: darkMode
             ? 'linear-gradient(135deg, rgba(15,23,42,0.8) 0%, rgba(30,41,59,0.5) 100%)'

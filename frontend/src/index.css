@@ -20,3 +20,388 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* ════════════════════════════════════════════
+   RESPONSIVE UTILITIES & MEDIA QUERIES
+   ════════════════════════════════════════════ */
+
+/* Viewport meta helper */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Mobile Menu ── */
+.mobile-menu-btn {
+  display: none !important;
+}
+
+.nav-links-desktop {
+  display: flex !important;
+}
+
+.mobile-menu-overlay {
+  display: none;
+}
+
+/* ═══════ TABLET (max-width: 1024px) ═══════ */
+@media (max-width: 1024px) {
+
+  /* Stats grid → 2x2 */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Feature/role grids → 2 columns */
+  .feature-grid,
+  .role-grid,
+  .how-it-works-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Dashboard action cards */
+  .action-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Profile layout */
+  .profile-container {
+    padding: 1.5rem !important;
+    gap: 1.5rem !important;
+  }
+
+  .profile-sidebar {
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .profile-main {
+    flex: 1 1 100% !important;
+  }
+
+  /* Admin detail grid */
+  .admin-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Admin expanded section */
+  .admin-expanded-section {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .admin-expanded-actions {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+
+  /* Donor section */
+  .donor-section {
+    flex-direction: column !important;
+    text-align: center;
+  }
+
+  .donor-info {
+    min-width: unset !important;
+  }
+
+  .donor-section button {
+    width: 100%;
+  }
+}
+
+/* ═══════ MOBILE (max-width: 768px) ═══════ */
+@media (max-width: 768px) {
+
+  /* ── Navbar ── */
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+
+  .nav-links-desktop {
+    display: none !important;
+  }
+
+  .mobile-menu-overlay {
+    display: block;
+  }
+
+  .navbar-main {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* ── Hero ── */
+  .hero-section {
+    min-height: 75vh !important;
+    padding: 1.5rem 1rem !important;
+  }
+
+  .hero-buttons {
+    flex-direction: column !important;
+    width: 100%;
+  }
+
+  .hero-buttons button {
+    width: 100% !important;
+  }
+
+  .trust-badges {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    align-items: center;
+  }
+
+  /* ── Stats grid → 2x2 on mobile ── */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    border-radius: 14px !important;
+  }
+
+  .stats-grid > div {
+    padding: 1rem 0.75rem !important;
+  }
+
+  /* ── Feature/How/Role grids → 1 column ── */
+  .feature-grid,
+  .how-it-works-grid,
+  .role-grid,
+  .roles-section-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Section padding ── */
+  .landing-section {
+    padding: 3rem 1rem !important;
+  }
+
+  /* ── Auth cards ── */
+  .auth-card {
+    padding: 2rem 1.25rem !important;
+    border-radius: 18px !important;
+    margin: 0 0.5rem;
+  }
+
+  /* ── Form 2-col → 1-col ── */
+  .form-grid-2col {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+
+  /* ── Dashboard ── */
+  .dashboard-container {
+    padding: 1.25rem 1rem 3rem 1rem !important;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.75rem !important;
+  }
+
+  .action-cards-grid,
+  .doctor-cards-grid,
+  .reports-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Appointment cards */
+  .appointment-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+
+  /* ── Disease Detection ── */
+  .detection-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .detection-container {
+    padding: 1.25rem 1rem !important;
+  }
+
+  .detection-title {
+    font-size: 1.75rem !important;
+  }
+
+  /* ── Chatbot ── */
+  .chat-container {
+    padding: 1rem !important;
+    height: 90vh !important;
+  }
+
+  .chat-title {
+    font-size: 1.5rem !important;
+  }
+
+  .chat-window {
+    padding: 1rem !important;
+  }
+
+  .chat-bubble {
+    max-width: 90% !important;
+  }
+
+  .chat-input-form {
+    padding: 0.5rem !important;
+  }
+
+  /* ── Medical Reports ── */
+  .reports-container {
+    padding: 1.25rem 1rem !important;
+  }
+
+  .reports-title {
+    font-size: 1.75rem !important;
+  }
+
+  /* ── Profile ── */
+  .profile-container {
+    padding: 1rem !important;
+    gap: 1rem !important;
+    flex-direction: column !important;
+  }
+
+  .profile-sidebar {
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+    padding: 1.5rem 1.25rem !important;
+  }
+
+  .profile-main {
+    flex: 1 1 100% !important;
+    padding: 1.5rem 1.25rem !important;
+  }
+
+  .profile-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Admin ── */
+  .admin-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-summary-bar {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  .admin-summary-info {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.25rem !important;
+  }
+
+  .admin-expanded-section {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+
+  .admin-expanded-actions {
+    width: 100%;
+    flex-direction: column !important;
+  }
+
+  .admin-expanded-actions button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* ── Donor section ── */
+  .donor-section {
+    flex-direction: column !important;
+    text-align: center;
+    padding: 1.5rem !important;
+  }
+
+  .donor-info {
+    min-width: unset !important;
+    flex-direction: column !important;
+    text-align: center;
+  }
+
+  .donor-section button {
+    width: 100%;
+  }
+
+  /* ── Modals ── */
+  .modal-overlay {
+    padding: 0.5rem !important;
+    align-items: flex-end !important;
+  }
+
+  .modal-content {
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* ── CTA Section ── */
+  .cta-section-card {
+    padding: 2rem 1.25rem !important;
+    border-radius: 18px !important;
+  }
+
+  /* ── Hospital dashboard inventory grid ── */
+  .inventory-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ── Blood type grid ── */
+  .blood-type-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* ── Pending verification card ── */
+  .pending-card {
+    padding: 2rem 1.5rem !important;
+  }
+
+  /* ── Section headers on mobile ── */
+  .section-title {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* ═══════ SMALL MOBILE (max-width: 480px) ═══════ */
+@media (max-width: 480px) {
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    margin-left: 0.5rem !important;
+    margin-right: 0.5rem !important;
+  }
+
+  .auth-card {
+    padding: 1.5rem 1rem !important;
+  }
+
+  .modal-content {
+    padding: 1.5rem !important;
+  }
+
+  .inventory-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .blood-type-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  .chat-bubble {
+    max-width: 95% !important;
+    padding: 0.75rem 1rem !important;
+  }
+}

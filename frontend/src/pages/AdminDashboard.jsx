@@ -140,7 +140,7 @@ const AdminDashboard = () => {
         </p>
 
         {/* Stats Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
           {[
             { icon: Clock, label: 'Pending', value: pending.length, color: c.warning },
             { icon: Users, label: 'Doctors', value: pending.filter(p => p.role === 'doctor').length, color: '#6366f1' },
@@ -204,7 +204,7 @@ const AdminDashboard = () => {
                 onClick={() => setExpandedId(isExpanded ? null : p._id)}>
                   
                   {/* Summary Bar */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div className="admin-summary-bar" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     
                     {/* Avatar */}
                     <div style={{
@@ -218,7 +218,7 @@ const AdminDashboard = () => {
 
                     {/* Basic Info */}
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div className="admin-summary-info" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <span style={{ fontWeight: '700', color: c.text, fontSize: '1.05rem' }}>{p.name}</span>
                         <span style={{
                           padding: '0.15rem 0.55rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '600',
@@ -236,13 +236,13 @@ const AdminDashboard = () => {
 
                   {/* Expanded Details */}
                   {isExpanded && (
-                    <div style={{
+                    <div className="admin-expanded-section" style={{
                       marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: `1px solid ${c.cardBorder}`,
                       display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
                     }} onClick={(e) => e.stopPropagation()}>
                       
                       {/* Grid of details */}
-                      <div style={{ color: c.muted, fontSize: '0.9rem', display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) minmax(200px, 1fr)', gap: '0.75rem 2rem' }}>
+                      <div className="admin-detail-grid" style={{ color: c.muted, fontSize: '0.9rem', display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) minmax(200px, 1fr)', gap: '0.75rem 2rem' }}>
                         <span style={{ display: 'flex', gap: '0.5rem' }}>
                           <span style={{ color: c.text, opacity: 0.6, width: '60px' }}>Email</span>
                           <span style={{ color: c.text, fontWeight: '500' }}>{p.email}</span>
@@ -287,7 +287,7 @@ const AdminDashboard = () => {
                       </div>
 
                       {/* Actions */}
-                      <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                      <div className="admin-expanded-actions" style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleVerify(p._id, p.name); }}
                           disabled={actionLoading === p._id}

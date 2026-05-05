@@ -157,22 +157,22 @@ const Chatbot = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="chat-container" style={styles.container}>
       <div style={styles.header}>
-        <h1 style={styles.title}>
+        <h1 className="chat-title" style={styles.title}>
             <Activity /> Health Assistant
         </h1>
         <p style={styles.subtitle}>Powered by Lifeline Local Expert Engine • Your Secure Health Information Assistant</p>
       </div>
       
-      <div style={styles.chatWindow}>
+      <div className="chat-window" style={styles.chatWindow}>
         {messages.map((msg, index) => (
           <div key={index} style={styles.messageRow(msg.sender)}>
              {msg.sender === 'bot' && (
                  <div style={styles.avatar('bot')}><Bot size={20} /></div>
              )}
             
-            <div style={styles.messageBubble(msg.sender)}>
+            <div className="chat-bubble" style={styles.messageBubble(msg.sender)}>
               {msg.sender === 'bot' ? (
                 <ReactMarkdown 
                   components={{
@@ -208,7 +208,7 @@ const Chatbot = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <form style={styles.inputForm} onSubmit={handleSend}>
+      <form className="chat-input-form" style={styles.inputForm} onSubmit={handleSend}>
         <input
           type="text"
           value={input}

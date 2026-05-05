@@ -251,11 +251,11 @@ const PatientDashboard = () => {
       <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '500px', height: '500px', borderRadius: '50%', background: darkMode ? 'radial-gradient(circle, rgba(56,189,248,0.04) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(37,99,235,0.03) 0%, transparent 70%)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '600px', height: '600px', borderRadius: '50%', background: darkMode ? 'radial-gradient(circle, rgba(124,58,237,0.04) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(124,58,237,0.03) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 2rem 4rem 2rem', position: 'relative', zIndex: 10, fontFamily: "'Inter', sans-serif" }}>
+      <div className="dashboard-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 2rem 4rem 2rem', position: 'relative', zIndex: 10, fontFamily: "'Inter', sans-serif" }}>
         
         {/* Header */}
         <header style={{ marginBottom: '3rem' }}>
-          <h1 style={{ fontSize: '2.5rem', color: c.textHighlight, marginBottom: '0.5rem', fontWeight: '800', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <h1 className="dashboard-header" style={{ fontSize: '2.5rem', color: c.textHighlight, marginBottom: '0.5rem', fontWeight: '800', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               Hello, {user?.name || 'Patient'} <span role="img" aria-label="wave">👋</span>
           </h1>
           <p style={{ fontSize: '1.05rem', color: c.muted, margin: 0 }}>Welcome to your personal health command center.</p>
@@ -265,7 +265,7 @@ const PatientDashboard = () => {
         <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: c.textHighlight, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <Activity size={24} color={c.primary} /> Quick Actions
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '4rem' }}>
+        <div className="action-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '4rem' }}>
           <ActionCard icon={Activity} title="AI Health Checkup" desc="Upload X-rays or MRI scans for instant AI-powered disease detection." btnText="Start Analysis" color={c.primary} onClick={() => navigate('/disease-detection')} />
           <ActionCard icon={MessageCircle} title="Health Assistant" desc="Chat with our 24/7 AI assistant for medical advice and symptom checking." btnText="Chat Now" color={c.success} onClick={() => navigate('/chatbot')} />
           <ActionCard icon={FileText} title="Medical Reports" desc="Securely access and manage your complete medical history and analysis results." btnText="View Records" color="#a855f7" onClick={() => navigate('/medical-reports')} />
@@ -275,12 +275,12 @@ const PatientDashboard = () => {
         <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: c.textHighlight, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <Heart size={24} color={c.danger} /> Blood Donor Registration
         </h2>
-        <div style={{
+        <div className="donor-section" style={{
             background: c.cardBg, borderRadius: '24px', padding: '2rem', border: c.cardBorder, 
             boxShadow: c.boxShadow, display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
             flexWrap: 'wrap', gap: '1.5rem', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', marginBottom: '4rem'
         }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flex: 1, minWidth: '300px' }}>
+            <div className="donor-info" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flex: 1, minWidth: '300px' }}>
                 <div style={{
                     width: '64px', height: '64px', borderRadius: '20px',
                     background: isDonor ? c.dangerBg : c.inputBg,
@@ -325,7 +325,7 @@ const PatientDashboard = () => {
         <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: c.textHighlight, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <Stethoscope size={24} color={c.primary} /> Top Specialists
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '4rem' }}>
+        <div className="doctor-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '4rem' }}>
             {doctors.length > 0 ? doctors.map(doc => (
                 <div 
                     key={doc._id} 
@@ -391,7 +391,7 @@ const PatientDashboard = () => {
                 const time = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
                 return (
-                <div key={appt._id} style={{
+                <div className="appointment-card" key={appt._id} style={{
                     background: c.cardBg, borderRadius: '20px', border: c.cardBorder, padding: '1.5rem 2rem',
                     boxShadow: c.boxShadow, backdropFilter: 'blur(16px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     flexWrap: 'wrap', gap: '1.5rem', transition: 'transform 0.2s'
@@ -431,7 +431,7 @@ const PatientDashboard = () => {
         {/* Incoming Blood Request Modal */}
         {incomingRequest && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: c.backdrop, backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
-            <div style={{ background: c.cardBg, border: `2px solid ${c.danger}`, borderRadius: '24px', padding: '2.5rem', width: '100%', maxWidth: '440px', boxShadow: `0 20px 40px -10px ${c.danger}40`, textAlign: 'center' }}>
+            <div className="modal-content" style={{ background: c.cardBg, border: `2px solid ${c.danger}`, borderRadius: '24px', padding: '2.5rem', width: '100%', maxWidth: '440px', boxShadow: `0 20px 40px -10px ${c.danger}40`, textAlign: 'center' }}>
               <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: c.dangerBg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', color: c.danger }}>
                   <AlertCircle size={40} />
               </div>
@@ -478,7 +478,7 @@ const PatientDashboard = () => {
         {/* Booking Modal */}
         {showModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: c.backdrop, backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }} onClick={() => setShowModal(false)}>
-            <div style={{ background: c.cardBg, border: c.cardBorder, padding: '2.5rem', borderRadius: '24px', width: '100%', maxWidth: '440px', boxShadow: c.boxShadow, color: c.textHighlight }} onClick={e => e.stopPropagation()}>
+            <div className="modal-content" style={{ background: c.cardBg, border: c.cardBorder, padding: '2.5rem', borderRadius: '24px', width: '100%', maxWidth: '440px', boxShadow: c.boxShadow, color: c.textHighlight }} onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                   <div>
                       <h2 style={{ fontSize: '1.5rem', margin: 0, fontWeight: '800' }}>Book Consultation</h2>
@@ -527,7 +527,7 @@ const PatientDashboard = () => {
         {/* Blood Type Selection Modal */}
         {showBloodTypeModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: c.backdrop, backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, padding: '1rem' }} onClick={() => setShowBloodTypeModal(false)}>
-            <div style={{ background: c.cardBg, border: c.cardBorder, padding: '2.5rem', borderRadius: '24px', width: '100%', maxWidth: '400px', boxShadow: c.boxShadow, color: c.textHighlight, textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-content" style={{ background: c.cardBg, border: c.cardBorder, padding: '2.5rem', borderRadius: '24px', width: '100%', maxWidth: '400px', boxShadow: c.boxShadow, color: c.textHighlight, textAlign: 'center' }} onClick={e => e.stopPropagation()}>
               <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: c.dangerBg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', color: c.danger }}>
                   <Droplet size={32} />
               </div>

@@ -218,7 +218,7 @@ const Register = () => {
       <div style={{ position: 'absolute', top: '10%', left: '15%', width: '400px', height: '400px', borderRadius: '50%', background: darkMode ? 'radial-gradient(circle, rgba(56,189,248,0.06) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(37,99,235,0.04) 0%, transparent 70%)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: '10%', right: '15%', width: '400px', height: '400px', borderRadius: '50%', background: darkMode ? 'radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(124,58,237,0.04) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-      <div style={{
+      <div className="auth-card" style={{
         position: 'relative', zIndex: 10, backgroundColor: c.cardBg, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
         padding: '2.5rem', borderRadius: '24px',
         boxShadow: darkMode ? '0 25px 50px -12px rgba(0,0,0,0.5)' : '0 20px 25px -5px rgba(0,0,0,0.05)',
@@ -271,7 +271,7 @@ const Register = () => {
                 options={[{ value: '', label: 'Select' }, ...['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bt => ({ value: bt, label: bt }))]}
                 c={c} icon={Activity}
               />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <FormInput label="Date of Birth" name="dob" type="date" icon={Calendar} value={dob} required {...fp} />
                 <CustomSelect label="Gender" name="gender" value={gender} onChange={onChange}
                   options={[{ value: '', label: 'Select' }, { value: 'Male', label: 'Male' }, { value: 'Female', label: 'Female' }, { value: 'Other', label: 'Other' }]}
@@ -314,7 +314,7 @@ const Register = () => {
           )}
 
           {/* ─── Password ─── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <FormInput label="Password" name="password" placeholder="Min. 6 chars" icon={Lock} value={password} required minLength="6" isPassword {...fp} />
             <FormInput label="Confirm Password" name="confirmPassword" placeholder="Confirm" icon={Lock} value={confirmPassword} required minLength="6" isPassword {...fp} />
           </div>
