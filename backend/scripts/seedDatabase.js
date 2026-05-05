@@ -29,7 +29,7 @@ const seed = async () => {
     const admin = await User.create({
       name: 'Lifeline Admin',
       email: 'admin.leftline.ai@gmail.com',
-      password: ';k,m$wiK7}A!ypQzgzpK{Lg_~G!+',
+      password: process.env.ADMIN_PASSWORD,
       role: 'admin',
       isVerified: true,
       phone: '+91 9000000001',
@@ -42,7 +42,7 @@ const seed = async () => {
       {
         name: 'Apollo Hospital Delhi',
         email: 'apollo.delhi@hospital.com',
-        password: 'Hospital@123',
+        password: process.env.HOSPITAL_PASSWORD,
         role: 'hospital',
         isVerified: true,
         phone: '+91 11-26825500',
@@ -53,7 +53,7 @@ const seed = async () => {
       {
         name: 'AIIMS New Delhi',
         email: 'aiims.delhi@hospital.com',
-        password: 'Hospital@123',
+        password: process.env.HOSPITAL_PASSWORD,
         role: 'hospital',
         isVerified: true,
         phone: '+91 11-26588500',
@@ -64,7 +64,7 @@ const seed = async () => {
       {
         name: 'Fortis Gurugram',
         email: 'fortis.ggn@hospital.com',
-        password: 'Hospital@123',
+        password: process.env.HOSPITAL_PASSWORD,
         role: 'hospital',
         isVerified: true,
         phone: '+91 124-4962200',
@@ -81,7 +81,7 @@ const seed = async () => {
       {
         name: 'Dr. Anika Sharma',
         email: 'dr.anika@lifeline.com',
-        password: 'Doctor@123',
+        password: process.env.DOCTOR_PASSWORD,
         role: 'doctor',
         isVerified: true,
         phone: '+91 9876500001',
@@ -97,7 +97,7 @@ const seed = async () => {
       {
         name: 'Dr. Rajesh Kumar',
         email: 'dr.rajesh@lifeline.com',
-        password: 'Doctor@123',
+        password: process.env.DOCTOR_PASSWORD,
         role: 'doctor',
         isVerified: true,
         phone: '+91 9876500002',
@@ -113,7 +113,7 @@ const seed = async () => {
       {
         name: 'Dr. Priya Mehta',
         email: 'dr.priya@lifeline.com',
-        password: 'Doctor@123',
+        password: process.env.DOCTOR_PASSWORD,
         role: 'doctor',
         isVerified: true,
         phone: '+91 9876500003',
@@ -128,7 +128,7 @@ const seed = async () => {
       {
         name: 'Dr. Vikram Singh',
         email: 'dr.vikram@lifeline.com',
-        password: 'Doctor@123',
+        password: process.env.DOCTOR_PASSWORD,
         role: 'doctor',
         isVerified: false,
         phone: '+91 9876500004',
@@ -143,7 +143,7 @@ const seed = async () => {
       {
         name: 'Dr. Neha Gupta',
         email: 'dr.neha@lifeline.com',
-        password: 'Doctor@123',
+        password: process.env.DOCTOR_PASSWORD,
         role: 'doctor',
         isVerified: false,
         phone: '+91 9876500005',
@@ -161,7 +161,7 @@ const seed = async () => {
       {
         name: 'Rahul Verma',
         email: 'rahul.verma@gmail.com',
-        password: 'Patient@123',
+        password: process.env.PATIENT_PASSWORD,
         role: 'patient',
         isVerified: true,
         phone: '+91 9812300001',
@@ -175,7 +175,7 @@ const seed = async () => {
       {
         name: 'Sneha Patel',
         email: 'sneha.patel@gmail.com',
-        password: 'Patient@123',
+        password: process.env.PATIENT_PASSWORD,
         role: 'patient',
         isVerified: true,
         phone: '+91 9812300002',
@@ -189,7 +189,7 @@ const seed = async () => {
       {
         name: 'Amit Tiwari',
         email: 'amit.tiwari@gmail.com',
-        password: 'Patient@123',
+        password: process.env.PATIENT_PASSWORD,
         role: 'patient',
         isVerified: true,
         phone: '+91 9812300003',
@@ -203,7 +203,7 @@ const seed = async () => {
       {
         name: 'Kavita Reddy',
         email: 'kavita.reddy@gmail.com',
-        password: 'Patient@123',
+        password: process.env.PATIENT_PASSWORD,
         role: 'patient',
         isVerified: true,
         phone: '+91 9812300004',
@@ -217,7 +217,7 @@ const seed = async () => {
       {
         name: 'Deepak Joshi',
         email: 'deepak.joshi@gmail.com',
-        password: 'Patient@123',
+        password: process.env.PATIENT_PASSWORD,
         role: 'patient',
         isVerified: true,
         phone: '+91 9812300005',
@@ -237,7 +237,7 @@ const seed = async () => {
     console.log('Hospitals: apollo.delhi@hospital.com / aiims.delhi@hospital.com / fortis.ggn@hospital.com');
     console.log('Doctors:   dr.anika / dr.rajesh / dr.priya / dr.vikram / dr.neha @lifeline.com');
     console.log('Patients:  rahul.verma / sneha.patel / amit.tiwari / kavita.reddy / deepak.joshi @gmail.com');
-    console.log('All passwords: <role>@123 (e.g. Doctor@123, Patient@123, Hospital@123)');
+    console.log('All passwords: use values from .env file');
     console.log('─────────────────────────────────────');
 
     process.exit(0);
