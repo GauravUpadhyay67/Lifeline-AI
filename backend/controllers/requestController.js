@@ -45,7 +45,6 @@ const createRequest = asyncHandler(async (req, res) => {
     try {
         const query = {
             isBloodDonor: true,
-            isOnline: true,
             bloodType: { $in: compatibleTypes },
             location: {
                 $near: {
