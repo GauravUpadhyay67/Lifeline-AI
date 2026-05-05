@@ -31,10 +31,14 @@ const createRequest = asyncHandler(async (req, res) => {
     console.log("Request Created:", request._id);
 
     // 2. Find Nearby Eligible Donors
-    // Logic: Online donors, matching blood type, within 10km radius
-    const radiusInKm = 10;
+    // For demo/testing purposes, radius is expanded to 50,000km (global)
+    const radiusInKm = 50000;
     
-    console.log(`Searching for donors: BloodType=${bloodType}, Lat=${location.lat}, Lng=${location.lng}, Radius=${radiusInKm}km`);
+    // Determine compatible donor blood types
+    let compatibleTypes = [bloodType];
+    if (bloodType !== 'O-') compatibleTypes.push('O-'); // O- is universal donor
+    
+    console.log(`Searching for donors: BloodTypes=${compatibleTypes}, Lat=${location.lat}, Lng=${location.lng}, Radius=${radiusInKm}km`);
 
     // Check if index exists or handle error
     let nearbyDonors = [];
@@ -42,6 +46,7 @@ const createRequest = asyncHandler(async (req, res) => {
         const query = {
             isBloodDonor: true,
             isOnline: true,
+            bloodType: { $in: compatibleTypes },
             location: {
                 $near: {
                     $geometry: {
@@ -54,7 +59,7 @@ const createRequest = asyncHandler(async (req, res) => {
         };
 
         nearbyDonors = await User.find(query);
-        console.log(`Found ${nearbyDonors.length} nearby donors.`);
+        console.log(`Found ${nearbyDonors.length} compatible donors.`);
 
     } catch (err) {
         console.error("Geospatial query failed:", err.message);
