@@ -48,7 +48,40 @@ const getMyAppointments = async (req, res) => {
   }
 };
 
+// @desc    Update appointment status (accept/reject) by doctor
+// @route   PUT /api/appointments/:id/status
+// @access  Private (Doctor only)
+const updateAppointmentStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!['approved', 'cancelled'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status. Use approved or cancelled.' });
+    }
+
+    const appointment = await Appointment.findById(req.params.id);
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    // Only the assigned doctor can update this appointment
+    if (appointment.doctor.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to update this appointment' });
+    }
+
+    appointment.status = status;
+    await appointment.save();
+
+    res.json(appointment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 module.exports = {
   bookAppointment,
   getMyAppointments,
+  updateAppointmentStatus,
 };

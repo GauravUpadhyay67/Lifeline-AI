@@ -59,6 +59,20 @@ const DoctorDashboard = ({ user }) => {
     }
   };
 
+  const handleStatusUpdate = async (appointmentId, status) => {
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${user.token}` }
+      };
+      await axios.put(`${API_URL}/api/appointments/${appointmentId}/status`, { status }, config);
+      // Refresh appointments after update
+      fetchAppointments();
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      alert('Failed to update appointment status.');
+    }
+  };
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     setFile(selectedFile);
@@ -244,28 +258,60 @@ const DoctorDashboard = ({ user }) => {
                 </h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {appointments.length > 0 ? appointments.map(appt => (
-                        <div className="appointment-card" key={appt._id} style={{ background: c.cardBg, padding: '1.5rem', borderRadius: '20px', border: c.cardBorder, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: c.boxShadow }}>
-                            <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                                <div style={{
-                                  width: '52px', height: '52px', borderRadius: '14px', 
-                                  background: c.inputBg, border: c.cardBorder, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  fontSize: '1.25rem', fontWeight: '800', color: c.muted
-                                }}>
-                                    {appt.patientName?.charAt(0).toUpperCase() || 'P'}
-                                </div>
-                                <div>
-                                    <h3 style={{margin: 0, color: c.textHighlight, fontSize: '1.1rem', fontWeight: '700'}}>{appt.patientName}</h3>
-                                    <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: c.muted, fontSize: '0.85rem', marginTop: '0.35rem', fontWeight: '500'}}>
-                                      <Calendar size={14} /> 
-                                      {new Date(appt.date).toLocaleDateString()} at {new Date(appt.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        <div className="appointment-card" key={appt._id} style={{ background: c.cardBg, padding: '1.5rem', borderRadius: '20px', border: c.cardBorder, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: c.boxShadow }}>
+                            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem'}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+                                    <div style={{
+                                      width: '52px', height: '52px', borderRadius: '14px', 
+                                      background: c.inputBg, border: c.cardBorder, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      fontSize: '1.25rem', fontWeight: '800', color: c.muted
+                                    }}>
+                                        {appt.patientName?.charAt(0).toUpperCase() || 'P'}
+                                    </div>
+                                    <div>
+                                        <h3 style={{margin: 0, color: c.textHighlight, fontSize: '1.1rem', fontWeight: '700'}}>{appt.patientName}</h3>
+                                        <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: c.muted, fontSize: '0.85rem', marginTop: '0.35rem', fontWeight: '500'}}>
+                                          <Calendar size={14} /> 
+                                          {new Date(appt.date).toLocaleDateString()} at {new Date(appt.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                        </div>
+                                        <p style={{margin: '0.4rem 0 0 0', fontSize: '0.82rem', color: c.muted, maxWidth: '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                                            {appt.reason}
+                                        </p>
                                     </div>
                                 </div>
-                            </div>
-                            <div style={{textAlign: 'right'}}>
-                                  <span style={badgeStyles(appt.status)}>{appt.status}</span>
-                                  <p style={{margin: '0.75rem 0 0 0', fontSize: '0.85rem', color: c.muted, maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: '500'}}>
-                                      {appt.reason}
-                                  </p>
+                                <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.75rem'}}>
+                                    <span style={badgeStyles(appt.status)}>{appt.status}</span>
+                                    {appt.status === 'pending' && (
+                                        <div style={{display: 'flex', gap: '0.5rem'}}>
+                                            <button
+                                                onClick={() => handleStatusUpdate(appt._id, 'approved')}
+                                                style={{
+                                                    padding: '0.4rem 1rem', borderRadius: '10px', border: 'none',
+                                                    background: c.successBg, color: c.success,
+                                                    fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+                                                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                                            >
+                                                ✓ Accept
+                                            </button>
+                                            <button
+                                                onClick={() => handleStatusUpdate(appt._id, 'cancelled')}
+                                                style={{
+                                                    padding: '0.4rem 1rem', borderRadius: '10px', border: 'none',
+                                                    background: c.dangerBg, color: c.danger,
+                                                    fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+                                                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                                            >
+                                                ✕ Reject
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )) : (
