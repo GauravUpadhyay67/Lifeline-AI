@@ -3,6 +3,7 @@ import axios from 'axios';
 import { API_URL } from '../../config';
 import ReactMarkdown from 'react-markdown';
 import { useTheme } from '../../context/ThemeContext';
+import { connectSocket, disconnectSocket, socket } from '../../utils/socket';
 import { Activity, AlertCircle, Droplet, Users, BrainCircuit, Edit2, CheckCircle2, MapPin, Search, ChevronRight, Bed, UserCheck } from 'lucide-react';
 
 const HospitalDashboard = ({ user }) => {
@@ -41,7 +42,21 @@ const HospitalDashboard = ({ user }) => {
     fetchInventory();
     fetchMyRequests();
     fetchAffiliatedDoctors();
-  }, [user.token]);
+
+    if (user?._id) {
+      connectSocket(user._id);
+      
+      socket.on('request_accepted', (data) => {
+        alert(`Good News! Donor ${data.donorName} has accepted your blood request.`);
+        fetchMyRequests();
+      });
+
+      return () => {
+        socket.off('request_accepted');
+        disconnectSocket();
+      };
+    }
+  }, [user.token, user._id]);
 
   const fetchAffiliatedDoctors = async () => {
     try {
@@ -226,7 +241,7 @@ const HospitalDashboard = ({ user }) => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const response = await axios.get(`${API_URL}/api/requests/my-requests`, config);
-      setMyRequests(response.data.filter(req => req.status === 'open'));
+      setMyRequests(response.data.filter(req => req.status === 'open' || req.status === 'accepted'));
     } catch (error) {
       console.error('Error fetching requests:', error);
     }
@@ -528,7 +543,10 @@ const HospitalDashboard = ({ user }) => {
                     <div key={req._id} style={{ padding: '1rem', background: c.inputBg, border: c.cardBorder, borderRadius: '6px', borderLeft: `4px solid ${c.danger}` }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                         <div>
-                          <div style={{ fontWeight: '600', color: c.textHighlight, fontSize: '1rem' }}>Type {req.bloodType}</div>
+                          <div style={{ fontWeight: '600', color: c.textHighlight, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            Type {req.bloodType} 
+                            {req.status === 'accepted' && <span style={{ background: c.successBg, color: c.success, padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem' }}>Accepted</span>}
+                          </div>
                           <div style={{ color: c.muted, fontSize: '0.8rem', marginTop: '0.1rem' }}>{req.unitsRequired} Units Required</div>
                         </div>
                         <span style={{ padding: '0.2rem 0.5rem', background: c.dangerBg, color: c.danger, borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase' }}>

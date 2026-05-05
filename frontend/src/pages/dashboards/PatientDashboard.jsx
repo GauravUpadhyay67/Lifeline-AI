@@ -23,6 +23,7 @@ const PatientDashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [bookingData, setBookingData] = useState({ date: '', reason: '' });
+  const [nearbyRequests, setNearbyRequests] = useState([]);
 
   // Blood Donor state
   const [isDonor, setIsDonor] = useState(user?.isBloodDonor || false);
@@ -34,7 +35,10 @@ const PatientDashboard = () => {
   useEffect(() => {
     fetchDoctors();
     fetchAppointments();
-  }, [user.token]);
+    if (isDonor) {
+      fetchNearbyRequests();
+    }
+  }, [user.token, isDonor]);
 
   // Socket connection for donor notifications
   useEffect(() => {
@@ -96,15 +100,28 @@ const PatientDashboard = () => {
     }
   };
 
-  const handleAcceptRequest = async () => {
-    if (!incomingRequest) return;
+  const fetchNearbyRequests = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put(`${API_URL}/api/requests/${incomingRequest.requestId}/accept`, {}, config);
+      // Default coordinate to center if geolocation fails, but getNearbyRequests is now permissive
+      const { data } = await axios.get(`${API_URL}/api/requests/nearby?lng=77.2&lat=28.6`, config);
+      setNearbyRequests(data);
+    } catch (error) {
+      console.error('Failed to fetch nearby requests:', error);
+    }
+  };
+
+  const handleAcceptRequest = async (requestId) => {
+    const targetId = requestId || incomingRequest?.requestId;
+    if (!targetId) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.put(`${API_URL}/api/requests/${targetId}/accept`, {}, config);
       alert('Thank you! The hospital has been notified.');
       setIncomingRequest(null);
+      fetchNearbyRequests(); // refresh list
     } catch (error) {
-      alert('Failed to accept request.');
+      alert(error.response?.data?.message || 'Failed to accept request.');
     }
   };
 
@@ -278,7 +295,7 @@ const PatientDashboard = () => {
         <div className="donor-section" style={{
             background: c.cardBg, borderRadius: '24px', padding: '2rem', border: c.cardBorder, 
             boxShadow: c.boxShadow, display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
-            flexWrap: 'wrap', gap: '1.5rem', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', marginBottom: '4rem'
+            flexWrap: 'wrap', gap: '1.5rem', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', marginBottom: '1.5rem'
         }}>
             <div className="donor-info" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flex: 1, minWidth: '300px' }}>
                 <div style={{
@@ -320,6 +337,34 @@ const PatientDashboard = () => {
               {donorToggleLoading ? 'Connecting...' : isDonor ? 'Deactivate Beacon' : 'Activate Donor Beacon'}
             </button>
         </div>
+
+        {/* Active Local Emergencies (Persisted View) */}
+        {isDonor && (
+            <div style={{ background: c.cardBg, borderRadius: '24px', padding: '1.5rem', border: `1px solid ${c.danger}33`, marginBottom: '4rem', boxShadow: c.boxShadow }}>
+                <h3 style={{ margin: '0 0 1rem 0', color: c.textHighlight, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem' }}>
+                    <AlertCircle size={18} color={c.danger} /> Active Local Emergencies
+                </h3>
+                {nearbyRequests.length > 0 ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+                        {nearbyRequests.map(req => (
+                            <div key={req._id} style={{ background: c.inputBg, border: c.cardBorder, padding: '1.25rem', borderRadius: '16px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <strong style={{ color: c.textHighlight }}>{req.hospital?.name || 'Hospital'}</strong>
+                                    <span style={{ background: c.dangerBg, color: c.danger, padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>{req.urgency}</span>
+                                </div>
+                                <div style={{ color: c.danger, fontWeight: '800', fontSize: '1.2rem', marginBottom: '0.25rem' }}>Type {req.bloodType} Needed</div>
+                                <div style={{ color: c.muted, fontSize: '0.85rem', marginBottom: '1rem' }}><MapPin size={12}/> {req.location?.address}</div>
+                                <button onClick={() => handleAcceptRequest(req._id)} style={{ width: '100%', padding: '0.75rem', background: c.danger, color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                                    Accept Request
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p style={{ color: c.muted, margin: 0, fontSize: '0.9rem' }}>No active emergencies matching your blood type at the moment. Stand by.</p>
+                )}
+            </div>
+        )}
 
         {/* Find a Doctor */}
         <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: c.textHighlight, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -431,7 +476,7 @@ const PatientDashboard = () => {
         {/* Incoming Blood Request Modal */}
         {incomingRequest && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: c.backdrop, backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
-            <div className="modal-content" style={{ background: c.cardBg, border: `2px solid ${c.danger}`, borderRadius: '24px', padding: '2.5rem', width: '100%', maxWidth: '440px', boxShadow: `0 20px 40px -10px ${c.danger}40`, textAlign: 'center' }}>
+            <div className="modal-content" style={{ background: c.cardBg, border: `2px solid ${c.danger}`, borderRadius: '24px', padding: '2.5rem', width: '100%', maxWidth: '440px', maxHeight: '90vh', overflowY: 'auto', boxShadow: `0 20px 40px -10px ${c.danger}40`, textAlign: 'center' }}>
               <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: c.dangerBg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', color: c.danger }}>
                   <AlertCircle size={40} />
               </div>
@@ -459,7 +504,7 @@ const PatientDashboard = () => {
 
               <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
                 <button 
-                    onClick={handleAcceptRequest} 
+                    onClick={() => handleAcceptRequest(incomingRequest.requestId)} 
                     style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer', boxShadow: '0 8px 16px rgba(16,185,129,0.3)' }}
                 >
                     <MapPin size={18} /> Accept & Dispatch

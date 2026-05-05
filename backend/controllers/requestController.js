@@ -146,24 +146,30 @@ const getMyRequests = asyncHandler(async (req, res) => {
 const getNearbyRequests = asyncHandler(async (req, res) => {
     const { lng, lat } = req.query;
     
-    if (!lng || !lat) {
-        res.status(400);
-        throw new Error('Location (lng, lat) is required');
-    }
+    let filterQuery = { status: 'open' };
 
-    const requests = await BloodRequest.find({
-        status: 'open',
-
-        location: {
+    // For demo purposes, we allow fetching without strict location, but if provided we use a large radius
+    if (lng && lat) {
+        filterQuery.location = {
             $near: {
                 $geometry: {
                     type: "Point",
                     coordinates: [parseFloat(lng), parseFloat(lat)]
                 },
-                $maxDistance: 20000 // 20km search radius for manual pull
+                $maxDistance: 50000000 // 50,000 km (Global) for demo
             }
+        };
+    }
+
+    // Only show requests this donor can fulfill (exact match or if donor is O- they can fulfill any)
+    if (req.user && req.user.bloodType) {
+        if (req.user.bloodType !== 'O-') {
+            filterQuery.bloodType = req.user.bloodType;
         }
-    }).populate('hospital', 'name phone address');
+        // If O-, they can fulfill any request, so no bloodType filter needed
+    }
+
+    const requests = await BloodRequest.find(filterQuery).populate('hospital', 'name phone address');
 
     res.json(requests);
 });
